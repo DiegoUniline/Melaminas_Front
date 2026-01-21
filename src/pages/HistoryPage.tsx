@@ -1,26 +1,39 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useData } from '@/contexts/DataContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, Clock, Send, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { 
+  FileText, 
+  Plus, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  Send,
+  ChevronRight
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const statusConfig = {
-  borrador: { label: 'Borrador', variant: 'secondary' as const, icon: Clock, className: '' },
-  enviada: { label: 'Enviada', variant: 'default' as const, icon: Send, className: 'bg-info hover:bg-info/90' },
-  aceptada: { label: 'Aceptada', variant: 'default' as const, icon: CheckCircle2, className: 'bg-success hover:bg-success/90' },
-  rechazada: { label: 'Rechazada', variant: 'destructive' as const, icon: XCircle, className: '' },
+  borrador: { label: 'Borrador', icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted' },
+  enviada: { label: 'Enviada', icon: Send, color: 'text-info', bg: 'bg-info/10' },
+  aceptada: { label: 'Aceptada', icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
+  rechazada: { label: 'Rechazada', icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
 };
 
 const HistoryPage: React.FC = () => {
   const { quotations } = useData();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   const sortedQuotations = [...quotations].sort(
@@ -28,68 +41,82 @@ const HistoryPage: React.FC = () => {
   );
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <MobileLayout title="Historial">
+      <div className="space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Historial de Cotizaciones</h1>
-            <p className="text-muted-foreground mt-1">Todas tus cotizaciones en un solo lugar</p>
+            <p className="text-sm text-muted-foreground">{quotations.length} cotizaciones</p>
           </div>
-          <Button asChild>
+          <Button asChild size="sm">
             <Link to="/cotizacion/nueva">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-1" />
               Nueva
             </Link>
           </Button>
         </div>
 
+        {/* Lista de cotizaciones */}
         {sortedQuotations.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center py-16">
-              <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay cotizaciones aún</p>
-              <Button asChild className="mt-4">
-                <Link to="/cotizacion/nueva">Crear primera cotización</Link>
+            <CardContent className="py-12 text-center">
+              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <p className="text-lg font-medium mb-1">Sin cotizaciones</p>
+              <p className="text-muted-foreground mb-4">Crea tu primera cotización</p>
+              <Button asChild>
+                <Link to="/cotizacion/nueva">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nueva Cotización
+                </Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {sortedQuotations.map((q) => {
-              const config = statusConfig[q.status];
+          <div className="space-y-2">
+            {sortedQuotations.map((quotation) => {
+              const config = statusConfig[quotation.status];
+              const StatusIcon = config.icon;
+              
               return (
-                <Card key={q.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <p className="font-semibold">{q.folio}</p>
-                        <p className="text-sm text-muted-foreground">{q.client.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(q.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
-                        </p>
+                <Link
+                  key={quotation.id}
+                  to={`/cotizacion/${quotation.id}`}
+                  className="block"
+                >
+                  <Card className="hover:bg-muted/30 transition-colors active:scale-[0.98]">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
+                            <StatusIcon className={`w-5 h-5 ${config.color}`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{quotation.client.name}</p>
+                            <p className="text-sm text-muted-foreground">{quotation.folio}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(quotation.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-3 flex items-center gap-2">
+                          <div>
+                            <p className="font-semibold">{formatCurrency(quotation.total)}</p>
+                            <Badge variant="outline" className={`${config.color} border-current`}>
+                              {config.label}
+                            </Badge>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-bold">{formatCurrency(q.total)}</p>
-                        <Badge variant={config.variant} className={config.className}>
-                          {config.label}
-                        </Badge>
-                      </div>
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/cotizacion/${q.id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
         )}
       </div>
-    </MainLayout>
+    </MobileLayout>
   );
 };
 

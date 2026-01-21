@@ -301,14 +301,14 @@ export const mapQuotationToApi = (
     folio: folio,
     id_cliente: quotation.clientId,
     subtotal: quotation.subtotal,
-    descuento: quotation.discount,
-    tipo_descuento: quotation.discountType,
+    descuento: quotation.discount ?? 0, // Default 0 si no hay descuento
+    tipo_descuento: quotation.discountType || 'fixed',
     total: quotation.total,
     dias_entrega: quotation.deliveryDays,
     dias_vigencia: quotation.validityDays,
     forma_pago: quotation.paymentTerms,
-    porcentaje_anticipo: quotation.advancePercentage,
-    observaciones: quotation.observations,
+    porcentaje_anticipo: quotation.advancePercentage ?? 0, // Default 0
+    observaciones: quotation.observations || '',
     estado: STATUS_REVERSE_MAP[quotation.status],
     creado_por: createdBy,
     actualizado_en: formatDateToISO()

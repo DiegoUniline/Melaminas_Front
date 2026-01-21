@@ -2,12 +2,17 @@ import React, { createContext, useContext, ReactNode, useState, useEffect } from
 import { User } from '@/types';
 import { mockUsers } from '@/data/mockData';
 
+interface LoginResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AuthContextType {
   currentUser: User | null;
-  users: User[];
-  login: (userId: string) => void;
+  login: (email: string, password: string) => LoginResult;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,21 +37,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
-  const login = (userId: string) => {
-    const user = mockUsers.find(u => u.id === userId && u.isActive);
-    if (user) {
-      setCurrentUser(user);
-      localStorage.setItem(AUTH_STORAGE_KEY, userId);
+  const login = (email: string, password: string): LoginResult => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      return { success: false, error: 'Ingresa correo y contraseña' };
     }
+
+    const user = mockUsers.find(
+      u => u.email.toLowerCase() === trimmedEmail && u.password === trimmedPassword
+    );
+
+    if (!user) {
+      return { success: false, error: 'Correo o contraseña incorrectos' };
+    }
+
+    if (!user.isActive) {
+      return { success: false, error: 'Usuario desactivado. Contacta al administrador' };
+    }
+
+    setCurrentUser(user);
+    localStorage.setItem(AUTH_STORAGE_KEY, user.id);
+    return { success: true };
   };
 
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
   };
-
-  // Solo mostrar usuarios activos para login
-  const activeUsers = mockUsers.filter(u => u.isActive);
 
   if (isLoading) {
     return (
@@ -59,10 +78,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{
       currentUser,
-      users: activeUsers,
       login,
       logout,
-      isAuthenticated: !!currentUser
+      isAuthenticated: !!currentUser,
+      isLoading
     }}>
       {children}
     </AuthContext.Provider>

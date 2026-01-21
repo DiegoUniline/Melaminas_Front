@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
-import { BusinessProfile, Client, Quotation, FurnitureItem } from '@/types';
+import { BusinessProfile, Client, Quotation } from '@/types';
 import api from '@/lib/api';
 import {
   mapApiClient,
@@ -21,7 +21,9 @@ import { useCatalogs } from './CatalogContext';
 interface DataContextType {
   // Estado de carga
   isLoading: boolean;
+  isSyncing: boolean; // New: indicates background sync
   error: string | null;
+  lastSyncAt: Date | null; // New: timestamp of last successful sync
   
   // Business Profile
   businessProfile: BusinessProfile | null;
@@ -44,7 +46,7 @@ interface DataContextType {
   getQuotationById: (id: string) => Quotation | undefined;
   updateQuotationStatus: (id: string, status: Quotation['status']) => Promise<boolean>;
   getNextFolio: () => Promise<string>;
-  refreshQuotations: () => Promise<void>;
+  refreshQuotations: (force?: boolean) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -63,12 +65,17 @@ const defaultBusinessProfile: BusinessProfile = {
   secondaryColor: '#D2691E'
 };
 
+// Cache duration in milliseconds (30 seconds)
+const CACHE_DURATION = 30 * 1000;
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
   const { getMaterialName, getColorName, getFinishName } = useCatalogs();
   
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
@@ -144,21 +151,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const getClientById = (id: string) => clients.find(c => c.id === id);
 
   // === QUOTATIONS ===
-  const refreshQuotations = useCallback(async () => {
-    const response = await api.get<ApiQuotation[]>('/cotizaciones');
-    if (response.success && response.data) {
-      // Para cada cotización, necesitamos obtener el cliente y los items
-      const quotationsWithDetails: Quotation[] = [];
-      
-      for (const apiQuotation of response.data) {
-        const client = clients.find(c => c.id === apiQuotation.id_cliente);
-        if (client) {
-          // Obtener detalle de items
-          const detailResponse = await api.get<ApiQuotationItem[]>(`/cotizacion-detalle/cotizacion/${apiQuotation.id}`);
+  const refreshQuotations = useCallback(async (force: boolean = false) => {
+    // Check cache - skip if synced recently (unless forced)
+    if (!force && lastSyncAt && Date.now() - lastSyncAt.getTime() < CACHE_DURATION) {
+      return;
+    }
+
+    setIsSyncing(true);
+    
+    try {
+      const response = await api.get<ApiQuotation[]>('/cotizaciones');
+      if (response.success && response.data) {
+        // OPTIMIZATION: Fetch all quotation details in PARALLEL instead of sequentially
+        const quotationsWithClient = response.data
+          .map(apiQuotation => ({
+            apiQuotation,
+            client: clients.find(c => c.id === apiQuotation.id_cliente)
+          }))
+          .filter((q): q is { apiQuotation: ApiQuotation; client: Client } => q.client !== undefined);
+
+        // Parallel fetch all details
+        const detailPromises = quotationsWithClient.map(({ apiQuotation }) =>
+          api.get<ApiQuotationItem[]>(`/cotizacion-detalle/cotizacion/${apiQuotation.id}`)
+        );
+        
+        const detailResponses = await Promise.all(detailPromises);
+        
+        // Map results
+        const quotationsWithDetails: Quotation[] = quotationsWithClient.map(({ apiQuotation, client }, index) => {
+          const detailResponse = detailResponses[index];
           const items = detailResponse.success && detailResponse.data 
             ? detailResponse.data.map(apiItem => {
                 const item = mapApiQuotationItem(apiItem);
-                // Enriquecer con nombres del catálogo para mostrar en PDF
                 return {
                   ...item,
                   _materialName: getMaterialName(item.material),
@@ -168,11 +192,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               })
             : [];
           
-          quotationsWithDetails.push(mapApiQuotation(apiQuotation, items, client));
-        }
+          return mapApiQuotation(apiQuotation, items, client);
+        });
+        
+        setQuotations(quotationsWithDetails);
+        setLastSyncAt(new Date());
       }
-      
-      setQuotations(quotationsWithDetails);
+    } finally {
+      setIsSyncing(false);
     }
   }, [clients, getMaterialName, getColorName, getFinishName]);
 
@@ -338,7 +365,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <DataContext.Provider value={{
       isLoading,
+      isSyncing,
       error,
+      lastSyncAt,
       businessProfile,
       updateBusinessProfile: updateBusinessProfileFn,
       refreshBusinessProfile,

@@ -37,14 +37,14 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-background to-violet-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo y título */}
       <div className="text-center mb-6">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/30">
-          <span className="text-3xl font-bold text-white">EM</span>
+        <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl font-bold text-white">EM</span>
         </div>
-        <h1 className="text-2xl font-bold text-foreground">El Melaminas</h1>
-        <p className="text-muted-foreground mt-1">Sistema de Cotizaciones</p>
+        <h1 className="text-xl font-semibold text-foreground">El Melaminas</h1>
+        <p className="text-sm text-muted-foreground mt-1">Sistema de Cotizaciones</p>
       </div>
 
       {/* Formulario de login */}

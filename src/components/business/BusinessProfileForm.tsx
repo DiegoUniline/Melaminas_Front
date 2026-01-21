@@ -80,12 +80,71 @@ export const BusinessProfileForm: React.FC = () => {
     }
   };
 
-  // Parse HSL to get RGB for preview
+  // Parse HSL to get style for preview
   const hslToStyle = (hsl: string): string => {
     if (!hsl) return '#8B4513';
-    // If already has hsl() wrapper or is a hex, return as-is
     if (hsl.startsWith('#') || hsl.startsWith('hsl')) return hsl;
     return `hsl(${hsl})`;
+  };
+
+  // Convert HSL string to HEX for color picker
+  const hslToHex = (hsl: string): string => {
+    if (!hsl) return '#8B4513';
+    if (hsl.startsWith('#')) return hsl;
+    
+    // Parse HSL values (format: "340 30% 45%" or "hsl(340, 30%, 45%)")
+    const hslClean = hsl.replace(/hsl\(|\)|,|%/g, ' ').trim();
+    const parts = hslClean.split(/\s+/).map(p => parseFloat(p));
+    if (parts.length < 3) return '#8B4513';
+    
+    let [h, s, l] = parts;
+    s = s / 100;
+    l = l / 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+    else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+    else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+    else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+    else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+
+    const toHex = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+
+  // Convert HEX to HSL string for saving
+  const hexToHsl = (hex: string): string => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return '25 50% 35%';
+
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  };
+
+  const handleColorChange = (field: 'primaryColor' | 'secondaryColor', hexValue: string) => {
+    const hslValue = hexToHsl(hexValue);
+    setFormData(prev => prev ? { ...prev, [field]: hslValue } : prev);
   };
 
   if (contextLoading || !formData) {
@@ -339,40 +398,42 @@ export const BusinessProfileForm: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="primaryColor">Color Principal</Label>
-                <div className="flex gap-3 mt-2">
-                  <div 
-                    className="w-12 h-10 rounded border border-input"
-                    style={{ backgroundColor: primaryColorStyle }}
+                <div className="flex items-center gap-3 mt-2">
+                  <input
+                    type="color"
+                    id="primaryColorPicker"
+                    value={hslToHex(formData.primaryColor)}
+                    onChange={(e) => handleColorChange('primaryColor', e.target.value)}
+                    className="w-14 h-10 rounded border border-input cursor-pointer bg-transparent"
                   />
-                  <Input
-                    id="primaryColor"
-                    name="primaryColor"
-                    value={formData.primaryColor}
-                    onChange={handleInputChange}
-                    placeholder="340 30% 45%"
-                    className="flex-1"
-                  />
+                  <div className="flex-1">
+                    <div 
+                      className="w-full h-10 rounded border border-input"
+                      style={{ backgroundColor: primaryColorStyle }}
+                    />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Formato HSL (Ej: 340 30% 45%)</p>
+                <p className="text-xs text-muted-foreground mt-1">Haz clic para seleccionar un color</p>
               </div>
               
               <div>
                 <Label htmlFor="secondaryColor">Color Secundario</Label>
-                <div className="flex gap-3 mt-2">
-                  <div 
-                    className="w-12 h-10 rounded border border-input"
-                    style={{ backgroundColor: secondaryColorStyle }}
+                <div className="flex items-center gap-3 mt-2">
+                  <input
+                    type="color"
+                    id="secondaryColorPicker"
+                    value={hslToHex(formData.secondaryColor)}
+                    onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
+                    className="w-14 h-10 rounded border border-input cursor-pointer bg-transparent"
                   />
-                  <Input
-                    id="secondaryColor"
-                    name="secondaryColor"
-                    value={formData.secondaryColor}
-                    onChange={handleInputChange}
-                    placeholder="40 60% 50%"
-                    className="flex-1"
-                  />
+                  <div className="flex-1">
+                    <div 
+                      className="w-full h-10 rounded border border-input"
+                      style={{ backgroundColor: secondaryColorStyle }}
+                    />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Formato HSL (Ej: 40 60% 50%)</p>
+                <p className="text-xs text-muted-foreground mt-1">Haz clic para seleccionar un color</p>
               </div>
             </div>
           </CardContent>

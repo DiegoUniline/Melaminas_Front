@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { USER_ROLES } from '@/types';
 
 interface MobileLayoutProps {
@@ -59,10 +58,8 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0 bg-card border-r">
-                <VisuallyHidden.Root>
-                  <SheetTitle>Menú de navegación</SheetTitle>
-                  <SheetDescription>Navega por las secciones de la aplicación</SheetDescription>
-                </VisuallyHidden.Root>
+                <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+                <SheetDescription className="sr-only">Navega por las secciones de la aplicación</SheetDescription>
                 {/* Menu Header */}
                 <div className="p-5 bg-primary text-white">
                   <div className="flex items-center gap-3">

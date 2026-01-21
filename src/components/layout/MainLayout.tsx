@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { Building2, FileText, History, Plus, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useData } from '@/contexts/DataContext';
 
 interface MainLayoutProps {
@@ -102,10 +101,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0 bg-sidebar">
-            <VisuallyHidden.Root>
-              <SheetTitle>Menú de navegación</SheetTitle>
-              <SheetDescription>Navega por las secciones de la aplicación</SheetDescription>
-            </VisuallyHidden.Root>
+            <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+            <SheetDescription className="sr-only">Navega por las secciones de la aplicación</SheetDescription>
             <NavContent onItemClick={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>

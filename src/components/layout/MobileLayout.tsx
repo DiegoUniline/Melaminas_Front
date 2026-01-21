@@ -47,20 +47,20 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       {showHeader && (
-        <header className="sticky top-0 z-40 bg-gradient-to-r from-primary via-primary to-accent text-primary-foreground px-4 py-3 safe-area-top shadow-lg">
+        <header className="sticky top-0 z-40 bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 text-white px-4 py-3 safe-area-top shadow-lg shadow-indigo-500/20">
           <div className="flex items-center justify-between">
             {/* Hamburger Menu */}
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0 bg-gradient-to-b from-card to-background border-r-0">
                 {/* Menu Header */}
-                <div className="p-6 bg-gradient-to-br from-primary to-accent text-primary-foreground">
+                <div className="p-6 bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                       <User className="w-6 h-6" />
                     </div>
                     <div className="flex-1 min-w-0">

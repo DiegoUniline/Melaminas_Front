@@ -12,6 +12,7 @@ import HistoryPage from "@/pages/HistoryPage";
 import UsersPage from "@/pages/UsersPage";
 import ClientsPage from "@/pages/ClientsPage";
 import QuotationDetailPage from "@/pages/QuotationDetailPage";
+import SuperAdminPage from "@/pages/SuperAdminPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFound from "@/pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/historial" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
               <Route path="/clientes" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
               <Route path="/usuarios" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+              <Route path="/superadmin" element={<ProtectedRoute><SuperAdminPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

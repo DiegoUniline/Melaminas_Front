@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, FilePlus, History, Users, Settings, LogOut } from 'lucide-react';
+import { Home, FilePlus, History, Users, Settings, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ interface MobileLayoutProps {
   showHeader?: boolean;
 }
 
-const navItems = [
+const baseNavItems = [
   { to: '/', icon: Home, label: 'Inicio' },
   { to: '/cotizacion/nueva', icon: FilePlus, label: 'Nueva' },
   { to: '/historial', icon: History, label: 'Historial' },
@@ -74,29 +74,35 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 safe-area-bottom">
         <div className="flex items-center justify-around py-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.to || 
-              (item.to !== '/' && location.pathname.startsWith(item.to));
+          {(() => {
+            const navItems = currentUser?.role === 'superadmin' 
+              ? [...baseNavItems, { to: '/superadmin', icon: Shield, label: 'Admin' }]
+              : baseNavItems;
             
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]",
-                  isActive 
-                    ? "text-primary" 
-                    : "text-muted-foreground"
-                )}
-              >
-                <item.icon className={cn(
-                  "w-6 h-6",
-                  isActive && "fill-current"
-                )} />
-                <span className="text-xs font-medium">{item.label}</span>
-              </Link>
-            );
-          })}
+            return navItems.map((item) => {
+              const isActive = location.pathname === item.to || 
+                (item.to !== '/' && location.pathname.startsWith(item.to));
+              
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-colors min-w-[50px]",
+                    isActive 
+                      ? "text-primary" 
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-5 h-5",
+                    isActive && "fill-current"
+                  )} />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </Link>
+              );
+            });
+          })()}
         </div>
       </nav>
     </div>

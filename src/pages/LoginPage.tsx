@@ -117,27 +117,11 @@ const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Credenciales de prueba */}
-          <div className="mt-6 pt-4 border-t">
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Credenciales de prueba:
-            </p>
-            <div className="space-y-2 text-xs bg-muted/50 p-3 rounded-lg">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Admin:</span>
-                <span className="font-mono">carlos@elmelaminas.com / admin123</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Vendedor:</span>
-                <span className="font-mono">maria@elmelaminas.com / vendedor123</span>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
       <p className="text-xs text-muted-foreground text-center mt-6">
-        Simulación de login • Datos almacenados localmente
+        Datos almacenados localmente
       </p>
     </div>
   );

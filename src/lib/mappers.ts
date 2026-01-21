@@ -193,18 +193,18 @@ export const mapBusinessProfileToApi = (profile: Partial<BusinessProfile>): Part
 export interface ApiQuotationItem {
   id: string;
   id_cotizacion: string;
-  id_producto?: string;
-  id_categoria?: string;
+  id_producto?: number;
+  id_categoria?: number;
   nombre: string;
   descripcion?: string;
   alto?: number;
   ancho?: number;
   profundidad?: number;
-  id_unidad_medida?: string;
-  id_material?: string;
+  id_unidad_medida?: number;
+  id_material?: number; // Number for AppSheet
   cantidad_hojas?: number;
-  id_color?: string;
-  id_acabado?: string;
+  id_color?: number; // Number for AppSheet
+  id_acabado?: number; // Number for AppSheet
   precio_unitario: number;
   cantidad: number;
   subtotal?: number;
@@ -220,10 +220,10 @@ export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem =>
   width: apiItem.ancho,
   depth: apiItem.profundidad,
   measureUnit: 'cm', // Default, se puede mapear con catálogo
-  material: apiItem.id_material || '',
+  material: String(apiItem.id_material || ''), // Convert number to string for FurnitureItem
   sheetCount: apiItem.cantidad_hojas || 0,
-  sheetColor: apiItem.id_color || '',
-  finish: apiItem.id_acabado,
+  sheetColor: String(apiItem.id_color || ''), // Convert number to string for FurnitureItem
+  finish: apiItem.id_acabado ? String(apiItem.id_acabado) : undefined,
   unitPrice: Number(apiItem.precio_unitario),
   quantity: Number(apiItem.cantidad),
   subtotal: apiItem.subtotal ? Number(apiItem.subtotal) : Number(apiItem.precio_unitario) * Number(apiItem.cantidad),
@@ -234,17 +234,18 @@ export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string):
   id: item.id,
   id_cotizacion: quotationId,
   nombre: item.name,
-  descripcion: item.description,
-  alto: item.height,
-  ancho: item.width,
-  profundidad: item.depth,
-  id_material: item.material,
-  cantidad_hojas: item.sheetCount,
-  id_color: item.sheetColor,
-  id_acabado: item.finish,
+  descripcion: item.description || '',
+  alto: item.height || 0,
+  ancho: item.width || 0,
+  profundidad: item.depth || 0,
+  id_material: item.material ? parseInt(item.material) || 0 : 0, // Convert to number
+  cantidad_hojas: item.sheetCount || 1,
+  id_color: item.sheetColor ? parseInt(item.sheetColor) || 0 : 0, // Convert to number
+  id_acabado: item.finish ? parseInt(item.finish) || undefined : undefined, // Convert to number
   precio_unitario: item.unitPrice,
   cantidad: item.quantity,
-  notas: item.notes
+  subtotal: item.subtotal || item.unitPrice * item.quantity,
+  notas: item.notes || ''
 });
 
 // === COTIZACIÓN ===

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { useData } from '@/contexts/DataContext';
@@ -13,7 +13,9 @@ import {
   CheckCircle2, 
   XCircle, 
   Send,
-  ChevronRight
+  ChevronRight,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -26,7 +28,12 @@ const statusConfig = {
 };
 
 const Dashboard: React.FC = () => {
-  const { quotations } = useData();
+  const { quotations, isLoading, refreshQuotations } = useData();
+
+  // Refresh data on mount
+  useEffect(() => {
+    refreshQuotations();
+  }, []);
 
   // Calcular estadísticas del mes actual
   const currentMonth = new Date().getMonth();
@@ -133,13 +140,31 @@ const Dashboard: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Recientes</h2>
-            <Link to="/historial" className="text-sm text-primary flex items-center">
-              Ver todas
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => refreshQuotations()}
+                disabled={isLoading}
+                className="h-8 px-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
+              <Link to="/historial" className="text-sm text-primary flex items-center">
+                Ver todas
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
 
-          {recentQuotations.length === 0 ? (
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <Loader2 className="w-8 h-8 text-primary mx-auto mb-3 animate-spin" />
+                <p className="text-muted-foreground">Cargando cotizaciones...</p>
+              </CardContent>
+            </Card>
+          ) : recentQuotations.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />

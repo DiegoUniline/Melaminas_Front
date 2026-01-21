@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,7 +91,7 @@ interface FormContentProps {
   finishes: { id: string; nombre: string }[];
 }
 
-const FormContentComponent: React.FC<FormContentProps> = ({
+const FormContentComponent = memo<FormContentProps>(({
   formData,
   onInputChange,
   onSelectChange,
@@ -458,7 +458,7 @@ const FormContentComponent: React.FC<FormContentProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
   open,
@@ -530,22 +530,22 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     }
   }, [editItem, open]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleSelectChange = (name: keyof FormData, value: string) => {
+  const handleSelectChange = useCallback((name: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const calculateSubtotal = () => {
+  const calculateSubtotal = useCallback(() => {
     const price = parseFloat(formData.unitPrice) || 0;
     const qty = parseInt(formData.quantity) || 1;
     return price * qty;
-  };
+  }, [formData.unitPrice, formData.quantity]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!formData.categoryId) {
       toast.error('Selecciona una categoría');
       return;
@@ -599,21 +599,25 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     onOpenChange(false);
     setFormData(initialFormState);
     toast.success(editItem ? 'Mueble actualizado' : 'Mueble agregado');
-  };
+  }, [formData, editItem, onSave, onOpenChange, getMaterialName, getColorName, getFinishName, calculateSubtotal]);
 
-  const formContentProps: FormContentProps = {
+  const handleCancel = useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  const formContentProps = useMemo<FormContentProps>(() => ({
     formData,
     onInputChange: handleInputChange,
     onSelectChange: handleSelectChange,
     onSave: handleSave,
-    onCancel: () => onOpenChange(false),
+    onCancel: handleCancel,
     isEdit: !!editItem,
     categories,
     products,
     materials,
     colors,
     finishes,
-  };
+  }), [formData, handleInputChange, handleSelectChange, handleSave, handleCancel, editItem, categories, products, materials, colors, finishes]);
 
   // Mobile: Use Sheet from bottom
   if (isMobile) {

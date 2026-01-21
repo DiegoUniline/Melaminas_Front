@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -230,7 +230,7 @@ const SuperAdminPage: React.FC = () => {
   };
 
   return (
-    <MobileLayout title="Panel Admin">
+    <ResponsiveLayout title="Panel Admin">
       <div className="space-y-5">
         {/* Header con gradiente */}
         <div className="rounded-lg bg-primary p-5 text-white">
@@ -599,7 +599,7 @@ const SuperAdminPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

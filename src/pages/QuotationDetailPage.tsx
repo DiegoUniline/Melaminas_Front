@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +57,7 @@ const QuotationDetailPage: React.FC = () => {
 
   if (!quotation) {
     return (
-      <MobileLayout title="Cotización">
+      <ResponsiveLayout title="Cotización">
         <Card>
           <CardContent className="py-8 text-center">
             <FileText className="h-12 w-12 mx-auto mb-2 text-muted-foreground opacity-50" />
@@ -67,7 +67,7 @@ const QuotationDetailPage: React.FC = () => {
             </Button>
           </CardContent>
         </Card>
-      </MobileLayout>
+      </ResponsiveLayout>
     );
   }
 
@@ -120,7 +120,7 @@ const QuotationDetailPage: React.FC = () => {
   });
 
   return (
-    <MobileLayout title={quotation.folio}>
+    <ResponsiveLayout title={quotation.folio}>
       <div className="space-y-4">
         {/* Status and Actions */}
         <Card>
@@ -321,7 +321,7 @@ const QuotationDetailPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

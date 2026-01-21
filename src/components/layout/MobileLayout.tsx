@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, FilePlus, History, Users, Settings, LogOut, Shield, Menu, X, User } from 'lucide-react';
+import { Home, FilePlus, History, Users, LogOut, Shield, Menu, User, BarChart3, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ const bottomNavItems = [
   { to: '/', icon: Home, label: 'Inicio' },
   { to: '/cotizacion/nueva', icon: FilePlus, label: 'Nueva' },
   { to: '/historial', icon: History, label: 'Historial' },
-  { to: '/clientes', icon: Users, label: 'Clientes' },
+  { to: '/reportes', icon: BarChart3, label: 'Reportes' },
 ];
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({ 
@@ -37,6 +37,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   };
 
   const menuItems = [
+    { to: '/clientes', icon: Users, label: 'Clientes' },
     { to: '/perfil', icon: Settings, label: 'Mi Perfil' },
     ...(currentUser?.role === 'superadmin' 
       ? [{ to: '/superadmin', icon: Shield, label: 'Panel Admin' }] 

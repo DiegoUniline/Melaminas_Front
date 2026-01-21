@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ const HistoryPage: React.FC = () => {
   );
 
   return (
-    <MobileLayout title="Historial">
+    <ResponsiveLayout title="Historial">
       <div className="space-y-4">
         {/* Search and Add */}
         <div className="flex gap-2">
@@ -136,7 +136,7 @@ const HistoryPage: React.FC = () => {
           </div>
         )}
       </div>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -184,7 +184,7 @@ const NewQuotationPage: React.FC = () => {
   };
 
   return (
-    <MobileLayout title={isEditing ? 'Editar Cotización' : 'Nueva Cotización'}>
+    <ResponsiveLayout title={isEditing ? 'Editar Cotización' : 'Nueva Cotización'}>
       <div className="space-y-4">
         {/* Cliente */}
         <Card>
@@ -445,7 +445,7 @@ const NewQuotationPage: React.FC = () => {
         onSave={handleAddItem}
         editItem={editingItem}
       />
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

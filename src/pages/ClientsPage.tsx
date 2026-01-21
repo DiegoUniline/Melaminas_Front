@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -156,7 +156,7 @@ const ClientsPage: React.FC = () => {
   };
 
   return (
-    <MobileLayout title="Clientes">
+    <ResponsiveLayout title="Clientes">
       <div className="space-y-4">
         {/* Search and Add */}
         <div className="flex gap-2">
@@ -372,7 +372,7 @@ const ClientsPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

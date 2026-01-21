@@ -108,11 +108,16 @@ export const CatalogProvider: React.FC<{ children: ReactNode }> = ({ children })
     catalogs?.materiales.filter(m => m.activo !== 'N') || [];
   
   const getActiveColors = (materialId?: string) => {
-    const colors = catalogs?.colores.filter(c => c.activo !== 'N') || [];
+    const activeColors = catalogs?.colores.filter(c => c.activo !== 'N') || [];
+    
+    // If materialId is provided, try to filter by it
     if (materialId) {
-      return colors.filter(c => c.id_material === materialId);
+      const filteredColors = activeColors.filter(c => c.id_material === materialId);
+      // If no colors for this material, return all active colors
+      return filteredColors.length > 0 ? filteredColors : activeColors;
     }
-    return colors;
+    
+    return activeColors;
   };
   
   const getActiveFinishes = () => 

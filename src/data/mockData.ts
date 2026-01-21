@@ -22,9 +22,9 @@ export const mockBusinessProfile: BusinessProfile = {
 export const mockUsers: User[] = [
   {
     id: '0',
-    name: 'Super Administrador',
-    email: 'super@elmelaminas.com',
-    password: 'super123',
+    name: 'Diego León',
+    email: 'diego.leon@uniline.mx',
+    password: '12345',
     phone: '555-000-0000',
     role: 'superadmin',
     isActive: true,

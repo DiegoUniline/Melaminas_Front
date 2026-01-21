@@ -6,7 +6,7 @@ export interface User {
   email: string;
   password: string;
   phone: string;
-  role: 'admin' | 'vendedor' | 'instalador';
+  role: 'superadmin' | 'admin' | 'vendedor' | 'instalador';
   avatar?: string;
   isActive: boolean;
   createdAt: Date;
@@ -146,7 +146,8 @@ export const COMMON_SHEET_COLORS = [
 
 // Roles de usuario
 export const USER_ROLES = {
+  superadmin: { label: 'Super Admin', color: 'bg-destructive' },
   admin: { label: 'Administrador', color: 'bg-primary' },
-  vendedor: { label: 'Vendedor', color: 'bg-info' },
-  instalador: { label: 'Instalador', color: 'bg-success' }
+  vendedor: { label: 'Vendedor', color: 'bg-blue-500' },
+  instalador: { label: 'Instalador', color: 'bg-green-500' }
 };

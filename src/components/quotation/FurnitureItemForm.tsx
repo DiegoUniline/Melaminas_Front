@@ -32,7 +32,8 @@ import {
 import { FurnitureItem, FurnitureCategory, FURNITURE_CATEGORIES, COMMON_MATERIALS, COMMON_SHEET_COLORS } from '@/types';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { DialogDescription } from '@/components/ui/dialog';
 
 interface FurnitureItemFormProps {
   open: boolean;
@@ -502,19 +503,19 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[95vh] overflow-y-auto px-4 pb-8">
-          <div className="flex items-center gap-3 py-4 border-b mb-4">
+          <SheetHeader className="flex flex-row items-center gap-3 py-4 border-b mb-4">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Package className="w-5 h-5 text-primary" />
             </div>
-            <div>
-              <h2 className="font-semibold text-lg">
+            <div className="text-left">
+              <SheetTitle className="font-semibold text-lg">
                 {editItem ? 'Editar Mueble' : 'Nuevo Mueble'}
-              </h2>
-              <p className="text-sm text-muted-foreground">
+              </SheetTitle>
+              <SheetDescription className="text-sm text-muted-foreground">
                 Completa las especificaciones
-              </p>
+              </SheetDescription>
             </div>
-          </div>
+          </SheetHeader>
           <FormContent />
         </SheetContent>
       </Sheet>
@@ -534,9 +535,9 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
               <DialogTitle className="text-xl">
                 {editItem ? 'Editar Mueble' : 'Agregar Nuevo Mueble'}
               </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
                 Completa las especificaciones del mueble
-              </p>
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>

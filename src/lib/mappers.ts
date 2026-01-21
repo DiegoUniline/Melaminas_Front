@@ -82,7 +82,8 @@ export interface ApiClient {
   notas?: string;
   activo?: string;
   creado_por?: string;
-  fecha_creacion?: string;
+  creado_en?: string;
+  actualizado_en?: string;
 }
 
 export const mapApiClient = (apiClient: ApiClient): Client => ({
@@ -94,10 +95,16 @@ export const mapApiClient = (apiClient: ApiClient): Client => ({
   address: apiClient.direccion,
   city: apiClient.ciudad,
   notes: apiClient.notas,
-  createdAt: apiClient.fecha_creacion ? new Date(apiClient.fecha_creacion) : new Date()
+  createdAt: apiClient.creado_en ? new Date(apiClient.creado_en) : new Date()
 });
 
-export const mapClientToApi = (client: Partial<Client> & { id?: string }, createdBy?: string): Partial<ApiClient> => {
+// Helper para formatear fecha a ISO (solo fecha YYYY-MM-DD)
+const formatDateToISO = (date?: Date): string => {
+  const d = date || new Date();
+  return d.toISOString().split('T')[0];
+};
+
+export const mapClientToApi = (client: Partial<Client> & { id?: string }, createdBy?: string, isUpdate: boolean = false): Partial<ApiClient> => {
   const mapped: Partial<ApiClient> = {};
   if (client.id !== undefined) mapped.id = client.id;
   if (client.name !== undefined) mapped.nombre = client.name;
@@ -108,6 +115,15 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   if (client.city !== undefined) mapped.ciudad = client.city;
   if (client.notes !== undefined) mapped.notas = client.notes;
   if (createdBy) mapped.creado_por = createdBy;
+  
+  // Siempre incluir fecha de actualización en formato ISO
+  mapped.actualizado_en = formatDateToISO();
+  
+  // Solo incluir fecha de creación al crear, no al actualizar
+  if (!isUpdate) {
+    mapped.creado_en = formatDateToISO();
+  }
+  
   return mapped;
 };
 
@@ -241,8 +257,8 @@ export interface ApiQuotation {
   observaciones?: string;
   estado: string;
   creado_por?: string;
-  fecha_creacion?: string;
-  fecha_actualizacion?: string;
+  creado_en?: string;
+  actualizado_en?: string;
 }
 
 export const mapApiQuotation = (
@@ -265,28 +281,39 @@ export const mapApiQuotation = (
   advancePercentage: apiQuotation.porcentaje_anticipo ? Number(apiQuotation.porcentaje_anticipo) : undefined,
   observations: apiQuotation.observaciones,
   status: STATUS_MAP[apiQuotation.estado] || 'borrador',
-  createdAt: apiQuotation.fecha_creacion ? new Date(apiQuotation.fecha_creacion) : new Date(),
-  updatedAt: apiQuotation.fecha_actualizacion ? new Date(apiQuotation.fecha_actualizacion) : new Date()
+  createdAt: apiQuotation.creado_en ? new Date(apiQuotation.creado_en) : new Date(),
+  updatedAt: apiQuotation.actualizado_en ? new Date(apiQuotation.actualizado_en) : new Date()
 });
 
 export const mapQuotationToApi = (
   quotation: Omit<Quotation, 'id' | 'folio' | 'createdAt' | 'updatedAt'>,
   folio: string,
-  createdBy?: string
-): Omit<ApiQuotation, 'id' | 'fecha_creacion' | 'fecha_actualizacion'> => ({
-  folio: folio,
-  id_cliente: quotation.clientId,
-  subtotal: quotation.subtotal,
-  descuento: quotation.discount,
-  tipo_descuento: quotation.discountType,
-  total: quotation.total,
-  dias_entrega: quotation.deliveryDays,
-  dias_vigencia: quotation.validityDays,
-  forma_pago: quotation.paymentTerms,
-  porcentaje_anticipo: quotation.advancePercentage,
-  observaciones: quotation.observations,
-  estado: STATUS_REVERSE_MAP[quotation.status],
-  creado_por: createdBy
-});
+  createdBy?: string,
+  isUpdate: boolean = false
+): Partial<ApiQuotation> => {
+  const result: Partial<ApiQuotation> = {
+    folio: folio,
+    id_cliente: quotation.clientId,
+    subtotal: quotation.subtotal,
+    descuento: quotation.discount,
+    tipo_descuento: quotation.discountType,
+    total: quotation.total,
+    dias_entrega: quotation.deliveryDays,
+    dias_vigencia: quotation.validityDays,
+    forma_pago: quotation.paymentTerms,
+    porcentaje_anticipo: quotation.advancePercentage,
+    observaciones: quotation.observations,
+    estado: STATUS_REVERSE_MAP[quotation.status],
+    creado_por: createdBy,
+    actualizado_en: formatDateToISO()
+  };
+  
+  // Solo incluir fecha de creación al crear, no al actualizar
+  if (!isUpdate) {
+    result.creado_en = formatDateToISO();
+  }
+  
+  return result;
+};
 
 export { STATUS_MAP, STATUS_REVERSE_MAP, ROLE_MAP, ROLE_REVERSE_MAP };

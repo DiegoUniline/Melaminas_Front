@@ -1,34 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { User as UserIcon, LogIn } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { USER_ROLES } from '@/types';
 
 const LoginPage: React.FC = () => {
-  const { users, login } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (userId: string) => {
-    login(userId);
-    navigate('/');
-  };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
-  const getRoleBadge = (role: 'admin' | 'vendedor' | 'instalador') => {
-    const config = USER_ROLES[role];
-    return (
-      <Badge className={`${config.color} text-white text-xs`}>
-        {config.label}
-      </Badge>
-    );
+    // Simular delay de red
+    setTimeout(() => {
+      const result = login(email, password);
+      
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.error || 'Error al iniciar sesión');
+      }
+      setIsLoading(false);
+    }, 500);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background flex flex-col items-center justify-center p-4">
       {/* Logo y título */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl font-bold text-primary-foreground">EM</span>
         </div>
@@ -36,44 +47,98 @@ const LoginPage: React.FC = () => {
         <p className="text-muted-foreground mt-1">Sistema de Cotizaciones</p>
       </div>
 
-      {/* Selección de usuario */}
-      <div className="w-full max-w-md">
-        <h2 className="text-lg font-semibold mb-4 text-center">Selecciona tu perfil</h2>
-        
-        <div className="space-y-3">
-          {users.map((user) => (
-            <Card 
-              key={user.id} 
-              className="cursor-pointer hover:border-primary transition-colors"
-              onClick={() => handleLogin(user.id)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                      <div className="mt-1">
-                        {getRoleBadge(user.role)}
-                      </div>
-                    </div>
-                  </div>
-                  <Button size="icon" variant="ghost">
-                    <LogIn className="w-5 h-5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Formulario de login */}
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-lg">Iniciar Sesión</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-        <p className="text-xs text-muted-foreground text-center mt-6">
-          Simulación de login • Datos almacenados localmente
-        </p>
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="usuario@elmelaminas.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                maxLength={255}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  maxLength={100}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <span className="animate-pulse">Ingresando...</span>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Ingresar
+                </>
+              )}
+            </Button>
+          </form>
+
+          {/* Credenciales de prueba */}
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-xs text-muted-foreground text-center mb-3">
+              Credenciales de prueba:
+            </p>
+            <div className="space-y-2 text-xs bg-muted/50 p-3 rounded-lg">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Admin:</span>
+                <span className="font-mono">carlos@elmelaminas.com / admin123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Vendedor:</span>
+                <span className="font-mono">maria@elmelaminas.com / vendedor123</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <p className="text-xs text-muted-foreground text-center mt-6">
+        Simulación de login • Datos almacenados localmente
+      </p>
     </div>
   );
 };

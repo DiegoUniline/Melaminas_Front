@@ -92,10 +92,11 @@ const UsersPage: React.FC = () => {
       const newUser: User = {
         id: Date.now().toString(),
         ...formData,
+        password: 'temp123', // Contraseña temporal por defecto
         createdAt: new Date()
       };
       setUsers(prev => [...prev, newUser]);
-      toast.success('Usuario creado');
+      toast.success('Usuario creado con contraseña: temp123');
     }
     
     setIsDialogOpen(false);

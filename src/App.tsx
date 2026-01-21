@@ -17,6 +17,7 @@ import QuotationDetailPage from "@/pages/QuotationDetailPage";
 import SuperAdminPage from "@/pages/SuperAdminPage";
 import ReportsPage from "@/pages/ReportsPage";
 import LoginPage from "@/pages/LoginPage";
+import InstallPage from "@/pages/InstallPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <HashRouter>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/instalar" element={<InstallPage />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/perfil" element={<ProtectedRoute><BusinessProfilePage /></ProtectedRoute>} />
                 <Route path="/cotizaciones" element={<ProtectedRoute><QuotationsPage /></ProtectedRoute>} />

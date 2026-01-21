@@ -47,7 +47,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       {showHeader && (
-        <header className="sticky top-0 z-40 bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 text-white px-4 py-3 safe-area-top shadow-lg shadow-indigo-500/20">
+        <header className="sticky top-0 z-40 bg-primary text-white px-4 py-3 safe-area-top">
           <div className="flex items-center justify-between">
             {/* Hamburger Menu */}
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -56,15 +56,15 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0 bg-gradient-to-b from-card to-background border-r-0">
+              <SheetContent side="left" className="w-72 p-0 bg-card border-r">
                 {/* Menu Header */}
-                <div className="p-6 bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+                <div className="p-5 bg-primary text-white">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                      <User className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-lg bg-white/20 flex items-center justify-center">
+                      <User className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{currentUser?.name}</p>
+                      <p className="font-medium truncate">{currentUser?.name}</p>
                       <Badge className="bg-white/20 text-white text-xs mt-1">
                         {currentUser && USER_ROLES[currentUser.role]?.label}
                       </Badge>
@@ -128,7 +128,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 safe-area-bottom">
         <div className="flex items-center justify-around py-2">
           {bottomNavItems.map((item) => {
             const isActive = location.pathname === item.to || 

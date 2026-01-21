@@ -233,23 +233,22 @@ const SuperAdminPage: React.FC = () => {
     <MobileLayout title="Panel Admin">
       <div className="space-y-5">
         {/* Header con gradiente */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-5 text-white shadow-xl">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
-          <div className="relative flex items-center justify-between">
+        <div className="rounded-lg bg-primary p-5 text-white">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg">
+              <div className="w-11 h-11 rounded-lg bg-white/20 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">Super Admin</h2>
-                <p className="text-sm text-indigo-200">Control total del sistema</p>
+                <h2 className="text-lg font-semibold">Panel de Administración</h2>
+                <p className="text-sm text-white/80">Control total del sistema</p>
               </div>
             </div>
             <Button 
-              variant="outline" 
+              variant="secondary" 
               size="sm"
               onClick={() => setIsResetDialogOpen(true)}
-              className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              className="bg-white/20 text-white hover:bg-white/30 border-0"
             >
               <RotateCcw className="w-4 h-4 mr-1" />
               Reset
@@ -259,25 +258,31 @@ const SuperAdminPage: React.FC = () => {
 
         {/* Stats Cards con gradientes */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="border-0 bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25">
+          <Card className="border bg-card">
             <CardContent className="p-4 text-center">
-              <Users className="w-6 h-6 mx-auto mb-2 opacity-90" />
-              <p className="text-2xl font-bold">{users.length}</p>
-              <p className="text-xs opacity-80">Usuarios</p>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">{users.length}</p>
+              <p className="text-xs text-muted-foreground">Usuarios</p>
             </CardContent>
           </Card>
-          <Card className="border-0 bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25">
+          <Card className="border bg-card">
             <CardContent className="p-4 text-center">
-              <UserCircle className="w-6 h-6 mx-auto mb-2 opacity-90" />
-              <p className="text-2xl font-bold">{clients.length}</p>
-              <p className="text-xs opacity-80">Clientes</p>
+              <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center mx-auto mb-2">
+                <UserCircle className="w-5 h-5 text-info" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">{clients.length}</p>
+              <p className="text-xs text-muted-foreground">Clientes</p>
             </CardContent>
           </Card>
-          <Card className="border-0 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25">
+          <Card className="border bg-card">
             <CardContent className="p-4 text-center">
-              <FileText className="w-6 h-6 mx-auto mb-2 opacity-90" />
-              <p className="text-2xl font-bold">{quotations.length}</p>
-              <p className="text-xs opacity-80">Cotizaciones</p>
+              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center mx-auto mb-2">
+                <FileText className="w-5 h-5 text-success" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">{quotations.length}</p>
+              <p className="text-xs text-muted-foreground">Cotizaciones</p>
             </CardContent>
           </Card>
         </div>

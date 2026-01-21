@@ -16,7 +16,7 @@ interface MobileLayoutProps {
 
 const bottomNavItems = [
   { to: '/', icon: Home, label: 'Inicio' },
-  { to: '/cotizacion/nueva', icon: FilePlus, label: 'Nueva' },
+  { to: '/cotizaciones', icon: FilePlus, label: 'Cotizaciones' },
   { to: '/historial', icon: History, label: 'Historial' },
   { to: '/reportes', icon: BarChart3, label: 'Reportes' },
 ];

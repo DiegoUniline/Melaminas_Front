@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -11,15 +14,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { Package } from 'lucide-react';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { 
+  Package, 
+  Ruler, 
+  Palette, 
+  DollarSign, 
+  FileText,
+  X,
+  Check,
+  Layers
+} from 'lucide-react';
 import { FurnitureItem, FurnitureCategory, FURNITURE_CATEGORIES, COMMON_MATERIALS, COMMON_SHEET_COLORS } from '@/types';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 interface FurnitureItemFormProps {
   open: boolean;
@@ -53,6 +66,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
   editItem,
 }) => {
   const [formData, setFormData] = useState(initialFormState);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (editItem) {
@@ -145,23 +159,21 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     ? FURNITURE_CATEGORIES[formData.category as FurnitureCategory]?.items || []
     : [];
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            {editItem ? 'Editar Mueble' : 'Agregar Mueble'}
-          </SheetTitle>
-          <SheetDescription>
-            Completa las especificaciones del mueble
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="space-y-4 mt-4 pb-4">
+  const FormContent = () => (
+    <div className="space-y-6">
+      {/* Section 1: Información General */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <Package className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Información General</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Categoría */}
           <div className="space-y-2">
-            <Label>Categoría *</Label>
+            <Label className="text-sm font-medium">
+              Categoría <span className="text-destructive">*</span>
+            </Label>
             <Select
               value={formData.category}
               onValueChange={(value) => {
@@ -169,7 +181,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
                 handleSelectChange('name', '');
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Selecciona categoría" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
@@ -183,25 +195,24 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
           </div>
 
           {/* Tipo de mueble / Nombre */}
-          {formData.category === 'otro' ? (
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre del mueble *</Label>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Nombre del mueble <span className="text-destructive">*</span>
+            </Label>
+            {formData.category === 'otro' || categoryItems.length === 0 ? (
               <Input
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Ej: Mesa de centro"
+                className="h-11"
               />
-            </div>
-          ) : categoryItems.length > 0 ? (
-            <div className="space-y-2">
-              <Label>Tipo de mueble *</Label>
+            ) : (
               <Select
                 value={formData.name}
                 onValueChange={(value) => handleSelectChange('name', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Selecciona tipo" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -210,86 +221,120 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
                       {item}
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom">Otro (personalizado)</SelectItem>
+                  <SelectItem value="custom">✏️ Otro (personalizado)</SelectItem>
                 </SelectContent>
               </Select>
-              {formData.name === 'custom' && (
-                <Input
-                  name="name"
-                  value={formData.name === 'custom' ? '' : formData.name}
-                  onChange={(e) => handleSelectChange('name', e.target.value)}
-                  placeholder="Nombre personalizado"
-                  className="mt-2"
-                />
-              )}
-            </div>
-          ) : null}
+            )}
+            {formData.name === 'custom' && (
+              <Input
+                name="name"
+                value=""
+                onChange={(e) => handleSelectChange('name', e.target.value)}
+                placeholder="Nombre personalizado"
+                className="h-11 mt-2"
+              />
+            )}
+          </div>
+        </div>
 
-          {/* Descripción */}
+        {/* Descripción */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Descripción</Label>
+          <Textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            placeholder="Describe características especiales del mueble..."
+            rows={2}
+            className="resize-none"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Section 2: Medidas */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <Ruler className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Dimensiones</h3>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
+            <Label className="text-xs text-muted-foreground">Alto</Label>
+            <Input
+              name="height"
+              type="number"
+              inputMode="decimal"
+              value={formData.height}
               onChange={handleInputChange}
-              placeholder="Descripción adicional..."
-              rows={2}
+              placeholder="0"
+              className="h-11 text-center"
             />
           </div>
-
-          {/* Medidas */}
           <div className="space-y-2">
-            <Label>Medidas</Label>
-            <div className="grid grid-cols-4 gap-2">
-              <Input
-                name="height"
-                type="number"
-                inputMode="decimal"
-                value={formData.height}
-                onChange={handleInputChange}
-                placeholder="Alto"
-              />
-              <Input
-                name="width"
-                type="number"
-                inputMode="decimal"
-                value={formData.width}
-                onChange={handleInputChange}
-                placeholder="Ancho"
-              />
-              <Input
-                name="depth"
-                type="number"
-                inputMode="decimal"
-                value={formData.depth}
-                onChange={handleInputChange}
-                placeholder="Prof."
-              />
-              <Select
-                value={formData.measureUnit}
-                onValueChange={(value) => handleSelectChange('measureUnit', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="cm">cm</SelectItem>
-                  <SelectItem value="m">m</SelectItem>
-                  <SelectItem value="pulgadas">pulg</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Label className="text-xs text-muted-foreground">Ancho</Label>
+            <Input
+              name="width"
+              type="number"
+              inputMode="decimal"
+              value={formData.width}
+              onChange={handleInputChange}
+              placeholder="0"
+              className="h-11 text-center"
+            />
           </div>
-
-          {/* Material */}
           <div className="space-y-2">
-            <Label>Material *</Label>
+            <Label className="text-xs text-muted-foreground">Profundo</Label>
+            <Input
+              name="depth"
+              type="number"
+              inputMode="decimal"
+              value={formData.depth}
+              onChange={handleInputChange}
+              placeholder="0"
+              className="h-11 text-center"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Unidad</Label>
+            <Select
+              value={formData.measureUnit}
+              onValueChange={(value) => handleSelectChange('measureUnit', value)}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="cm">cm</SelectItem>
+                <SelectItem value="m">m</SelectItem>
+                <SelectItem value="pulgadas">pulg</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Section 3: Material y Color */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <Palette className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Material y Acabado</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Material <span className="text-destructive">*</span>
+            </Label>
             <Select
               value={formData.material}
               onValueChange={(value) => handleSelectChange('material', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Selecciona material" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
@@ -302,107 +347,201 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
             </Select>
           </div>
 
-          {/* Hojas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="sheetCount">Cantidad de hojas</Label>
-              <Input
-                id="sheetCount"
-                name="sheetCount"
-                type="number"
-                inputMode="numeric"
-                value={formData.sheetCount}
-                onChange={handleInputChange}
-                min="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Color de hojas *</Label>
-              <Select
-                value={formData.sheetColor}
-                onValueChange={(value) => handleSelectChange('sheetColor', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Color" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  {COMMON_SHEET_COLORS.map((color) => (
-                    <SelectItem key={color} value={color}>
-                      {color}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Acabado */}
           <div className="space-y-2">
-            <Label htmlFor="finish">Acabado</Label>
+            <Label className="text-sm font-medium">
+              Color <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.sheetColor}
+              onValueChange={(value) => handleSelectChange('sheetColor', value)}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Selecciona color" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                {COMMON_SHEET_COLORS.map((color) => (
+                  <SelectItem key={color} value={color}>
+                    {color}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Layers className="w-4 h-4" />
+              Cantidad de hojas
+            </Label>
             <Input
-              id="finish"
-              name="finish"
-              value={formData.finish}
+              name="sheetCount"
+              type="number"
+              inputMode="numeric"
+              value={formData.sheetCount}
               onChange={handleInputChange}
-              placeholder="Ej: Mate, Brillante, Natural"
+              min="1"
+              className="h-11"
             />
           </div>
 
-          {/* Precio y cantidad */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="unitPrice">Precio unitario *</Label>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Acabado</Label>
+            <Input
+              name="finish"
+              value={formData.finish}
+              onChange={handleInputChange}
+              placeholder="Mate, Brillante, Natural..."
+              className="h-11"
+            />
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Section 4: Precio */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <DollarSign className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Precio</h3>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Precio unitario <span className="text-destructive">*</span>
+            </Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
               <Input
-                id="unitPrice"
                 name="unitPrice"
                 type="number"
                 inputMode="decimal"
                 value={formData.unitPrice}
                 onChange={handleInputChange}
                 placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Cantidad</Label>
-              <Input
-                id="quantity"
-                name="quantity"
-                type="number"
-                inputMode="numeric"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                min="1"
+                className="h-11 pl-7"
               />
             </div>
           </div>
 
-          {/* Notas */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
+            <Label className="text-sm font-medium">Cantidad</Label>
+            <Input
+              name="quantity"
+              type="number"
+              inputMode="numeric"
+              value={formData.quantity}
               onChange={handleInputChange}
-              placeholder="Notas adicionales..."
-              rows={2}
+              min="1"
+              className="h-11"
             />
           </div>
-
-          {/* Subtotal */}
-          <div className="p-3 bg-primary/10 rounded-lg flex items-center justify-between">
-            <span className="font-medium">Subtotal:</span>
-            <span className="text-lg font-bold text-primary">
-              ${calculateSubtotal().toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-
-          {/* Botón guardar */}
-          <Button className="w-full" size="lg" onClick={handleSave}>
-            {editItem ? 'Actualizar Mueble' : 'Agregar Mueble'}
-          </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+
+        {/* Subtotal Card */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Subtotal</p>
+                <p className="text-xs text-muted-foreground">
+                  {formData.quantity || 1} × ${parseFloat(formData.unitPrice || '0').toLocaleString('es-MX')}
+                </p>
+              </div>
+              <p className="text-2xl font-bold text-primary">
+                ${calculateSubtotal().toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Section 5: Notas */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <FileText className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Notas Adicionales</h3>
+        </div>
+        
+        <Textarea
+          name="notes"
+          value={formData.notes}
+          onChange={handleInputChange}
+          placeholder="Observaciones, instrucciones especiales, etc."
+          rows={3}
+          className="resize-none"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 pt-4">
+        <Button 
+          variant="outline" 
+          className="flex-1 h-12" 
+          onClick={() => onOpenChange(false)}
+        >
+          <X className="w-4 h-4 mr-2" />
+          Cancelar
+        </Button>
+        <Button 
+          className="flex-1 h-12" 
+          onClick={handleSave}
+        >
+          <Check className="w-4 h-4 mr-2" />
+          {editItem ? 'Actualizar' : 'Agregar Mueble'}
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Mobile: Use Sheet from bottom
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[95vh] overflow-y-auto px-4 pb-8">
+          <div className="flex items-center gap-3 py-4 border-b mb-4">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Package className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-lg">
+                {editItem ? 'Editar Mueble' : 'Nuevo Mueble'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Completa las especificaciones
+              </p>
+            </div>
+          </div>
+          <FormContent />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop: Use Dialog
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Package className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl">
+                {editItem ? 'Editar Mueble' : 'Agregar Nuevo Mueble'}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Completa las especificaciones del mueble
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+        <FormContent />
+      </DialogContent>
+    </Dialog>
   );
 };

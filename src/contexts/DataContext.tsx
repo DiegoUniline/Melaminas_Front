@@ -115,7 +115,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateClientFn = async (id: string, clientData: Partial<Client>): Promise<boolean> => {
-    const apiData = mapClientToApi(clientData);
+    const apiData = mapClientToApi(clientData, undefined, true);
     const response = await api.put(`/clientes/${id}`, apiData);
     
     if (response.success) {
@@ -242,7 +242,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const apiData = mapQuotationToApi(
           { ...existingQuotation, ...headerData },
           existingQuotation.folio,
-          currentUser?.id
+          currentUser?.id,
+          true // isUpdate = true
         );
         
         const response = await api.put(`/cotizaciones/${id}`, apiData);

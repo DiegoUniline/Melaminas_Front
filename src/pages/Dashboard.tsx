@@ -5,6 +5,7 @@ import { useData } from '@/contexts/DataContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { QuotationActions } from '@/components/quotation/QuotationActions';
 import { 
   FileText, 
   Plus, 
@@ -178,37 +179,37 @@ const Dashboard: React.FC = () => {
                 const StatusIcon = config.icon;
                 
                 return (
-                  <Link
-                    key={quotation.id}
-                    to={`/cotizacion/${quotation.id}`}
-                    className="block"
-                  >
-                    <Card className="hover:bg-muted/30 transition-colors">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
-                              <StatusIcon className={`w-5 h-5 ${config.color}`} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm truncate">{quotation.client.name}</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>{quotation.folio}</span>
-                                <span>•</span>
-                                <span>{format(new Date(quotation.updatedAt), "d MMM", { locale: es })}</span>
-                              </div>
+                  <Card key={quotation.id} className="hover:bg-muted/30 transition-colors">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link
+                          to={`/cotizacion/${quotation.id}`}
+                          className="flex items-center gap-3 min-w-0 flex-1"
+                        >
+                          <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
+                            <StatusIcon className={`w-5 h-5 ${config.color}`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">{quotation.client.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{quotation.folio}</span>
+                              <span>•</span>
+                              <span>{format(new Date(quotation.updatedAt), "d MMM", { locale: es })}</span>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-2">
+                        </Link>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="text-right">
                             <p className="font-semibold text-sm">{formatCurrency(quotation.total)}</p>
                             <Badge variant="outline" className={`text-xs ${config.color} border-current`}>
                               {config.label}
                             </Badge>
                           </div>
+                          <QuotationActions quotation={quotation} variant="dropdown" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>

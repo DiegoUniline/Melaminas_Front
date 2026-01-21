@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, FilePlus, History, Users, LogOut, Shield, Menu, User, BarChart3, Settings, Download } from 'lucide-react';
+import { Home, FilePlus, History, Users, LogOut, Shield, Menu, User, BarChart3, Settings, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
+import { useCatalogs } from '@/contexts/CatalogContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { USER_ROLES } from '@/types';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { toast } from 'sonner';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -30,13 +33,35 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const { refreshQuotations, refreshClients, refreshBusinessProfile, isLoading: dataLoading } = useData();
+  const { refreshCatalogs, isLoading: catalogsLoading } = useCatalogs();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const { isInstalled } = usePWAInstall();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await Promise.all([
+        refreshQuotations(),
+        refreshClients(),
+        refreshBusinessProfile(),
+        refreshCatalogs(true) // Force refresh catalogs
+      ]);
+      toast.success('Datos sincronizados');
+    } catch (e) {
+      toast.error('Error al sincronizar');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const isSyncing = syncing || dataLoading || catalogsLoading;
 
   const menuItems = [
     { to: '/clientes', icon: Users, label: 'Clientes' },
@@ -120,8 +145,16 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
 
             <h1 className="text-xl font-bold">{title || 'El Melaminas'}</h1>
             
-            {/* Placeholder para equilibrar el header */}
-            <div className="w-10" />
+            {/* Sync Button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/10"
+              onClick={handleSync}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={cn("w-5 h-5", isSyncing && "animate-spin")} />
+            </Button>
           </div>
         </header>
       )}

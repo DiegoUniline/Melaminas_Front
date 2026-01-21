@@ -572,9 +572,17 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     const colorName = getColorName(formData.colorId);
     const finishName = formData.finishId ? getFinishName(formData.finishId) : undefined;
 
+    // Find product ID by name
+    const findProductIdByName = (name: string): string | undefined => {
+      const product = products.find(p => p.nombre === name);
+      return product?.id;
+    };
+
     const item: FurnitureItem = {
       id: editItem?.id || Date.now().toString(),
       category: 'otro' as FurnitureCategory, // Will be mapped by API using categoryId
+      categoryId: formData.categoryId, // Store category ID for API
+      productId: findProductIdByName(formData.name), // Store product ID for API
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       height: formData.height ? parseFloat(formData.height) : undefined,

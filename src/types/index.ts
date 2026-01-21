@@ -54,6 +54,9 @@ export interface FurnitureItem {
   customCategory?: string;
   name: string;
   description?: string;
+  // IDs para la API
+  categoryId?: string;
+  productId?: string;
   // Medidas
   height?: number;
   width?: number;

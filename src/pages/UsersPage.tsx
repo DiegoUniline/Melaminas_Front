@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -126,7 +126,7 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <MobileLayout title="Usuarios">
+    <ResponsiveLayout title="Usuarios">
       <div className="space-y-4">
         {/* Header con botón de agregar */}
         <div className="flex items-center justify-between">
@@ -286,7 +286,7 @@ const UsersPage: React.FC = () => {
           ))}
         </div>
       </div>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

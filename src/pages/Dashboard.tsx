@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <MobileLayout title="El Melaminas">
+    <ResponsiveLayout title="Inicio">
       <div className="space-y-6">
         {/* Stats Grid - 2x2 como en la imagen */}
         <div className="grid grid-cols-2 gap-3">
@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
-    </MobileLayout>
+    </ResponsiveLayout>
   );
 };
 

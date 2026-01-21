@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { QuotationActions } from '@/components/quotation/QuotationActions';
 import { 
   FileText, 
   Plus, 
@@ -13,7 +14,6 @@ import {
   CheckCircle2, 
   XCircle, 
   Send,
-  ChevronRight,
   Search
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -98,39 +98,37 @@ const HistoryPage: React.FC = () => {
               const StatusIcon = config.icon;
               
               return (
-                <Link
-                  key={quotation.id}
-                  to={`/cotizacion/${quotation.id}`}
-                  className="block"
-                >
-                  <Card className="hover:bg-muted/30 transition-colors active:scale-[0.98]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
-                            <StatusIcon className={`w-5 h-5 ${config.color}`} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium truncate">{quotation.client.name}</p>
-                            <p className="text-sm text-muted-foreground">{quotation.folio}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(quotation.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
-                            </p>
-                          </div>
+                <Card key={quotation.id} className="hover:bg-muted/30 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        to={`/cotizacion/${quotation.id}`}
+                        className="flex items-center gap-3 min-w-0 flex-1"
+                      >
+                        <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
+                          <StatusIcon className={`w-5 h-5 ${config.color}`} />
                         </div>
-                        <div className="text-right flex-shrink-0 ml-3 flex items-center gap-2">
-                          <div>
-                            <p className="font-semibold">{formatCurrency(quotation.total)}</p>
-                            <Badge variant="outline" className={`${config.color} border-current`}>
-                              {config.label}
-                            </Badge>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{quotation.client.name}</p>
+                          <p className="text-sm text-muted-foreground">{quotation.folio}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(quotation.createdAt), "d 'de' MMMM, yyyy", { locale: es })}
+                          </p>
                         </div>
+                      </Link>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="text-right hidden sm:block">
+                          <p className="font-semibold">{formatCurrency(quotation.total)}</p>
+                          <Badge variant="outline" className={`${config.color} border-current`}>
+                            {config.label}
+                          </Badge>
+                        </div>
+                        <p className="font-semibold sm:hidden">{formatCurrency(quotation.total)}</p>
+                        <QuotationActions quotation={quotation} variant="icon" />
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>

@@ -6,6 +6,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CatalogProvider } from "@/contexts/CatalogContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { InstallPWABanner } from "@/components/pwa/InstallPWABanner";
 import Dashboard from "@/pages/Dashboard";
 import BusinessProfilePage from "@/pages/BusinessProfilePage";
 import QuotationsPage from "@/pages/QuotationsPage";
@@ -27,6 +28,7 @@ const App = () => (
         <CatalogProvider>
           <DataProvider>
             <Toaster position="top-center" />
+            <InstallPWABanner />
             <HashRouter>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />

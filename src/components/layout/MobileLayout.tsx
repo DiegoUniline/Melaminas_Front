@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, FilePlus, History, Users, LogOut, Shield, Menu, User, BarChart3, Settings } from 'lucide-react';
+import { Home, FilePlus, History, Users, LogOut, Shield, Menu, User, BarChart3, Settings, Download } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { USER_ROLES } from '@/types';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isInstalled } = usePWAInstall();
 
   const handleLogout = () => {
     logout();
@@ -39,6 +41,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   const menuItems = [
     { to: '/clientes', icon: Users, label: 'Clientes' },
     { to: '/perfil', icon: Settings, label: 'Mi Perfil' },
+    ...(!isInstalled ? [{ to: '/instalar', icon: Download, label: 'Instalar App' }] : []),
     ...(currentUser?.role === 'superadmin' 
       ? [{ to: '/superadmin', icon: Shield, label: 'Panel Admin' }] 
       : []),

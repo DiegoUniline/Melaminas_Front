@@ -12,7 +12,8 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Building2
+  Building2,
+  Download
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { USER_ROLES } from '@/types';
 import { useState } from 'react';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
@@ -46,6 +48,7 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const { isInstalled } = usePWAInstall();
 
   const handleLogout = () => {
     logout();
@@ -126,6 +129,21 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             >
               <Shield className="w-5 h-5 flex-shrink-0" />
               {!collapsed && <span>Panel Admin</span>}
+            </Link>
+          )}
+
+          {!isInstalled && (
+            <Link
+              to="/instalar"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-sm font-medium",
+                isActive('/instalar')
+                  ? "bg-primary text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Download className="w-5 h-5 flex-shrink-0" />
+              {!collapsed && <span>Instalar App</span>}
             </Link>
           )}
         </nav>

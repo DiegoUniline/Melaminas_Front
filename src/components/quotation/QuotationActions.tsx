@@ -15,12 +15,13 @@ import {
   Clock,
   MoreVertical,
   FileText,
-  MessageCircle
+  MessageCircle,
+  Loader2
 } from 'lucide-react';
 import { Quotation, QuotationStatus } from '@/types';
 import { useData } from '@/contexts/DataContext';
 import { downloadQuotationPDF } from '@/utils/pdfGenerator';
-import { shareViaWhatsApp, shareToClientWhatsApp } from '@/utils/whatsappShare';
+import { shareQuotationAsImage } from '@/utils/whatsappShare';
 import { toast } from 'sonner';
 
 interface QuotationActionsProps {
@@ -45,6 +46,7 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
 }) => {
   const { updateQuotationStatus, businessProfile } = useData();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const handleDownloadPDF = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,21 +61,27 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
     }
   };
 
-  const handleShareWhatsApp = (e: React.MouseEvent, toClient: boolean = false) => {
+  const handleShareWhatsApp = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
+    if (isSharing) return;
+    
+    setIsSharing(true);
     try {
-      if (toClient && (quotation.client.whatsapp || quotation.client.phone)) {
-        shareToClientWhatsApp(quotation, businessProfile);
-        toast.success('Abriendo WhatsApp...');
-      } else {
-        shareViaWhatsApp(quotation, businessProfile);
-        toast.success('Abriendo WhatsApp...');
+      const result = await shareQuotationAsImage(quotation, businessProfile);
+      if (result.success) {
+        if (result.fallback) {
+          toast.success('Imagen descargada. Se abrió WhatsApp con el mensaje.');
+        } else {
+          toast.success('Cotización compartida');
+        }
       }
     } catch (error) {
       console.error('Error sharing via WhatsApp:', error);
-      toast.error('Error al compartir por WhatsApp');
+      toast.error('Error al compartir');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -113,9 +121,13 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
             <FileDown className="h-4 w-4 mr-2" />
             Descargar PDF
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={(e) => handleShareWhatsApp(e as unknown as React.MouseEvent, true)}>
-            <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-            Enviar por WhatsApp
+          <DropdownMenuItem onClick={(e) => handleShareWhatsApp(e as unknown as React.MouseEvent)} disabled={isSharing}>
+            {isSharing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+            )}
+            {isSharing ? 'Generando...' : 'Enviar por WhatsApp'}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
@@ -161,10 +173,15 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
           variant="ghost" 
           size="icon" 
           className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-          onClick={(e) => handleShareWhatsApp(e, true)}
+          onClick={handleShareWhatsApp}
           title="Enviar por WhatsApp"
+          disabled={isSharing}
         >
-          <MessageCircle className="h-4 w-4" />
+          {isSharing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageCircle className="h-4 w-4" />
+          )}
         </Button>
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
@@ -213,11 +230,16 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
       <Button 
         variant="outline" 
         size={size}
-        onClick={(e) => handleShareWhatsApp(e, true)}
+        onClick={handleShareWhatsApp}
         className="gap-1 text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
+        disabled={isSharing}
       >
-        <MessageCircle className="h-4 w-4" />
-        <span className="hidden sm:inline">WhatsApp</span>
+        {isSharing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <MessageCircle className="h-4 w-4" />
+        )}
+        <span className="hidden sm:inline">{isSharing ? 'Generando...' : 'WhatsApp'}</span>
       </Button>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>

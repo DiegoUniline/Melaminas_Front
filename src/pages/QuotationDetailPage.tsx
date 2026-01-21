@@ -36,8 +36,9 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
-import { QuotationStatus, FURNITURE_CATEGORIES } from '@/types';
+import { QuotationStatus } from '@/types';
 import { downloadQuotationPDF } from '@/utils/pdfGenerator';
+import { shareQuotationAsImage } from '@/utils/whatsappShare';
 import { toast } from 'sonner';
 
 const statusConfig: Record<QuotationStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -52,6 +53,7 @@ const QuotationDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { getQuotationById, updateQuotationStatus, deleteQuotation, businessProfile } = useData();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const quotation = getQuotationById(id || '');
 
@@ -85,16 +87,25 @@ const QuotationDetailPage: React.FC = () => {
     }
   };
 
-  const handleShareWhatsApp = () => {
-    const message = encodeURIComponent(
-      `Hola ${quotation.client.name}, te comparto la cotización ${quotation.folio} de ${businessProfile.businessName}.\n\n` +
-      `Total: $${quotation.total.toLocaleString('es-MX')}\n` +
-      `Vigencia: ${quotation.validityDays} días\n\n` +
-      `¿Te gustaría proceder con el pedido?`
-    );
-    const phone = quotation.client.whatsapp || quotation.client.phone;
-    const cleanPhone = phone.replace(/\D/g, '');
-    window.open(`https://wa.me/52${cleanPhone}?text=${message}`, '_blank');
+  const handleShareWhatsApp = async () => {
+    if (isSharing) return;
+    
+    setIsSharing(true);
+    try {
+      const result = await shareQuotationAsImage(quotation, businessProfile);
+      if (result.success) {
+        if (result.fallback) {
+          toast.success('Imagen descargada. Se abrió WhatsApp con el mensaje.');
+        } else {
+          toast.success('Cotización compartida');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast.error('Error al compartir');
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const handleDelete = () => {
@@ -282,9 +293,13 @@ const QuotationDetailPage: React.FC = () => {
             <Download className="h-4 w-4 mr-2" />
             Descargar PDF
           </Button>
-          <Button variant="outline" onClick={handleShareWhatsApp}>
-            <MessageCircle className="h-4 w-4 mr-2" />
-            WhatsApp
+          <Button variant="outline" onClick={handleShareWhatsApp} disabled={isSharing}>
+            {isSharing ? (
+              <span className="h-4 w-4 mr-2 animate-spin border-2 border-current border-t-transparent rounded-full" />
+            ) : (
+              <MessageCircle className="h-4 w-4 mr-2" />
+            )}
+            {isSharing ? 'Generando...' : 'WhatsApp'}
           </Button>
         </div>
 

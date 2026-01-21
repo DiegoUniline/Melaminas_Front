@@ -98,10 +98,16 @@ export const mapApiClient = (apiClient: ApiClient): Client => ({
   createdAt: apiClient.creado_en ? new Date(apiClient.creado_en) : new Date()
 });
 
-// Helper para formatear fecha a ISO (solo fecha YYYY-MM-DD)
+// Helper para formatear fecha a ISO (solo fecha YYYY-MM-DD) usando componentes locales
+// Evita usar toISOString() que convierte a UTC y puede cambiar la fecha
 const formatDateToISO = (date?: Date): string => {
   const d = date || new Date();
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const result = `${year}-${month}-${day}`;
+  console.log('[formatDateToISO] Input:', d, '-> Output:', result);
+  return result;
 };
 
 export const mapClientToApi = (client: Partial<Client> & { id?: string }, createdBy?: string, isUpdate: boolean = false): Partial<ApiClient> => {

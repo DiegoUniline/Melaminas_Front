@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Dashboard from "@/pages/Dashboard";
 import BusinessProfilePage from "@/pages/BusinessProfilePage";
-import NewQuotationPage from "@/pages/NewQuotationPage";
+import QuotationsPage from "@/pages/QuotationsPage";
 import HistoryPage from "@/pages/HistoryPage";
 import UsersPage from "@/pages/UsersPage";
 import ClientsPage from "@/pages/ClientsPage";
@@ -30,9 +30,11 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/perfil" element={<ProtectedRoute><BusinessProfilePage /></ProtectedRoute>} />
-              <Route path="/cotizacion/nueva" element={<ProtectedRoute><NewQuotationPage /></ProtectedRoute>} />
+              <Route path="/cotizaciones" element={<ProtectedRoute><QuotationsPage /></ProtectedRoute>} />
+              <Route path="/cotizaciones/nueva" element={<ProtectedRoute><QuotationsPage /></ProtectedRoute>} />
+              <Route path="/cotizaciones/:id" element={<ProtectedRoute><QuotationsPage /></ProtectedRoute>} />
+              <Route path="/cotizacion/nueva" element={<ProtectedRoute><QuotationsPage /></ProtectedRoute>} />
               <Route path="/cotizacion/:id" element={<ProtectedRoute><QuotationDetailPage /></ProtectedRoute>} />
-              <Route path="/cotizacion/:id/editar" element={<ProtectedRoute><NewQuotationPage /></ProtectedRoute>} />
               <Route path="/historial" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
               <Route path="/clientes" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
               <Route path="/usuarios" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />

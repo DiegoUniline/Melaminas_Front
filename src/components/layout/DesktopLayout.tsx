@@ -28,7 +28,7 @@ interface DesktopLayoutProps {
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
-  { to: '/cotizacion/nueva', icon: FilePlus, label: 'Nueva Cotización' },
+  { to: '/cotizaciones', icon: FilePlus, label: 'Cotizaciones' },
   { to: '/historial', icon: History, label: 'Historial' },
   { to: '/clientes', icon: Users, label: 'Clientes' },
   { to: '/reportes', icon: BarChart3, label: 'Reportes' },

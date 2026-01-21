@@ -233,6 +233,8 @@ export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem =>
 export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string): ApiQuotationItem => ({
   id: item.id,
   id_cotizacion: quotationId,
+  id_producto: item.productId ? parseInt(item.productId) || undefined : undefined, // Required by API
+  id_categoria: item.categoryId ? parseInt(item.categoryId) || undefined : undefined,
   nombre: item.name,
   descripcion: item.description || '',
   alto: item.height || 0,

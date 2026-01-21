@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Plus, History, User, Users } from 'lucide-react';
+import { Home, FilePlus, History, Users, Settings } from 'lucide-react';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -11,10 +11,10 @@ interface MobileLayoutProps {
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
-  { to: '/cotizacion/nueva', icon: Plus, label: 'Nueva' },
+  { to: '/cotizacion/nueva', icon: FilePlus, label: 'Nueva' },
   { to: '/historial', icon: History, label: 'Historial' },
-  { to: '/usuarios', icon: Users, label: 'Usuarios' },
-  { to: '/perfil', icon: User, label: 'Perfil' },
+  { to: '/clientes', icon: Users, label: 'Clientes' },
+  { to: '/perfil', icon: Settings, label: 'Perfil' },
 ];
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({ 

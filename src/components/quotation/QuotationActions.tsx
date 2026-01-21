@@ -14,11 +14,13 @@ import {
   XCircle, 
   Clock,
   MoreVertical,
-  FileText
+  FileText,
+  MessageCircle
 } from 'lucide-react';
 import { Quotation, QuotationStatus } from '@/types';
 import { useData } from '@/contexts/DataContext';
 import { downloadQuotationPDF } from '@/utils/pdfGenerator';
+import { shareViaWhatsApp, shareToClientWhatsApp } from '@/utils/whatsappShare';
 import { toast } from 'sonner';
 
 interface QuotationActionsProps {
@@ -54,6 +56,24 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error('Error al generar PDF');
+    }
+  };
+
+  const handleShareWhatsApp = (e: React.MouseEvent, toClient: boolean = false) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      if (toClient && (quotation.client.whatsapp || quotation.client.phone)) {
+        shareToClientWhatsApp(quotation, businessProfile);
+        toast.success('Abriendo WhatsApp...');
+      } else {
+        shareViaWhatsApp(quotation, businessProfile);
+        toast.success('Abriendo WhatsApp...');
+      }
+    } catch (error) {
+      console.error('Error sharing via WhatsApp:', error);
+      toast.error('Error al compartir por WhatsApp');
     }
   };
 
@@ -93,7 +113,14 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
             <FileDown className="h-4 w-4 mr-2" />
             Descargar PDF
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={(e) => handleShareWhatsApp(e as unknown as React.MouseEvent, true)}>
+            <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+            Enviar por WhatsApp
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+            Cambiar estado
+          </div>
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
             Cambiar estado
           </div>
@@ -129,6 +156,15 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
           title="Descargar PDF"
         >
           <FileDown className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+          onClick={(e) => handleShareWhatsApp(e, true)}
+          title="Enviar por WhatsApp"
+        >
+          <MessageCircle className="h-4 w-4" />
         </Button>
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
@@ -173,6 +209,15 @@ export const QuotationActions: React.FC<QuotationActionsProps> = ({
       >
         <FileDown className="h-4 w-4" />
         <span className="hidden sm:inline">PDF</span>
+      </Button>
+      <Button 
+        variant="outline" 
+        size={size}
+        onClick={(e) => handleShareWhatsApp(e, true)}
+        className="gap-1 text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
+      >
+        <MessageCircle className="h-4 w-4" />
+        <span className="hidden sm:inline">WhatsApp</span>
       </Button>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>

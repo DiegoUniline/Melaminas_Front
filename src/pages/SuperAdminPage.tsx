@@ -230,58 +230,64 @@ const SuperAdminPage: React.FC = () => {
   };
 
   return (
-    <MobileLayout title="Super Admin">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-destructive" />
-            <div>
-              <h2 className="text-lg font-semibold">Panel de Control</h2>
-              <p className="text-sm text-muted-foreground">Acceso total al sistema</p>
+    <MobileLayout title="Panel Admin">
+      <div className="space-y-5">
+        {/* Header con gradiente */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 text-white shadow-xl">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Super Admin</h2>
+                <p className="text-sm text-slate-300">Control total del sistema</p>
+              </div>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsResetDialogOpen(true)}
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Reset
+            </Button>
           </div>
-          <Button 
-            variant="destructive" 
-            size="sm"
-            onClick={() => setIsResetDialogOpen(true)}
-          >
-            <RotateCcw className="w-4 h-4 mr-1" />
-            Restablecer
-          </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-2">
-          <Card>
-            <CardContent className="p-3 text-center">
-              <Users className="w-5 h-5 mx-auto text-primary mb-1" />
-              <p className="text-xl font-bold">{users.length}</p>
-              <p className="text-xs text-muted-foreground">Usuarios</p>
+        {/* Stats Cards con gradientes */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="border-0 bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25">
+            <CardContent className="p-4 text-center">
+              <Users className="w-6 h-6 mx-auto mb-2 opacity-90" />
+              <p className="text-2xl font-bold">{users.length}</p>
+              <p className="text-xs opacity-80">Usuarios</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-3 text-center">
-              <UserCircle className="w-5 h-5 mx-auto text-green-500 mb-1" />
-              <p className="text-xl font-bold">{clients.length}</p>
-              <p className="text-xs text-muted-foreground">Clientes</p>
+          <Card className="border-0 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25">
+            <CardContent className="p-4 text-center">
+              <UserCircle className="w-6 h-6 mx-auto mb-2 opacity-90" />
+              <p className="text-2xl font-bold">{clients.length}</p>
+              <p className="text-xs opacity-80">Clientes</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-3 text-center">
-              <FileText className="w-5 h-5 mx-auto text-blue-500 mb-1" />
-              <p className="text-xl font-bold">{quotations.length}</p>
-              <p className="text-xs text-muted-foreground">Cotizaciones</p>
+          <Card className="border-0 bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/25">
+            <CardContent className="p-4 text-center">
+              <FileText className="w-6 h-6 mx-auto mb-2 opacity-90" />
+              <p className="text-2xl font-bold">{quotations.length}</p>
+              <p className="text-xs opacity-80">Cotizaciones</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs con estilo mejorado */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="users">Usuarios</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
-            <TabsTrigger value="quotations">Cotizaciones</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Usuarios</TabsTrigger>
+            <TabsTrigger value="clients" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Clientes</TabsTrigger>
+            <TabsTrigger value="quotations" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Cotizaciones</TabsTrigger>
           </TabsList>
 
           {/* Users Tab */}

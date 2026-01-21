@@ -102,7 +102,7 @@ const NewQuotationPage: React.FC = () => {
     : 0;
   const total = subtotal - discountAmount;
 
-  const handleSave = (status: QuotationStatus = 'borrador') => {
+  const handleSave = async (status: QuotationStatus = 'borrador') => {
     if (!selectedClient) {
       toast.error('Selecciona un cliente');
       return;
@@ -129,17 +129,22 @@ const NewQuotationPage: React.FC = () => {
     };
 
     if (isEditing && existingQuotation) {
-      updateQuotation(existingQuotation.id, quotationData);
+      await updateQuotation(existingQuotation.id, quotationData);
       toast.success('Cotización actualizada');
     } else {
-      const newQuotation = addQuotation(quotationData);
-      toast.success(`Cotización ${newQuotation.folio} creada`);
+      const newQuotation = await addQuotation(quotationData);
+      if (newQuotation) {
+        toast.success(`Cotización ${newQuotation.folio} creada`);
+      } else {
+        toast.error('Error al crear cotización');
+        return;
+      }
     }
     
     navigate('/historial');
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     if (!selectedClient) {
       toast.error('Selecciona un cliente');
       return;
@@ -168,10 +173,15 @@ const NewQuotationPage: React.FC = () => {
 
     let quotation;
     if (isEditing && existingQuotation) {
-      updateQuotation(existingQuotation.id, quotationData);
+      await updateQuotation(existingQuotation.id, quotationData);
       quotation = { ...existingQuotation, ...quotationData };
     } else {
-      quotation = addQuotation(quotationData);
+      const newQuotation = await addQuotation(quotationData);
+      if (!newQuotation) {
+        toast.error('Error al crear cotización');
+        return;
+      }
+      quotation = newQuotation;
     }
 
     try {

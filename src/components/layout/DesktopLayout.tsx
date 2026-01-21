@@ -13,15 +13,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
+import { useCatalogs } from '@/contexts/CatalogContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { USER_ROLES } from '@/types';
 import { useState } from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { toast } from 'sonner';
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
@@ -47,13 +51,35 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const { refreshQuotations, refreshClients, refreshBusinessProfile, isLoading: dataLoading } = useData();
+  const { refreshCatalogs, isLoading: catalogsLoading } = useCatalogs();
   const [collapsed, setCollapsed] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const { isInstalled } = usePWAInstall();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await Promise.all([
+        refreshQuotations(),
+        refreshClients(),
+        refreshBusinessProfile(),
+        refreshCatalogs(true) // Force refresh catalogs
+      ]);
+      toast.success('Datos sincronizados');
+    } catch (e) {
+      toast.error('Error al sincronizar');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const isSyncing = syncing || dataLoading || catalogsLoading;
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -201,8 +227,18 @@ export const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         )}
       >
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-card border-b border-border px-6 py-4">
+        <header className="sticky top-0 z-40 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{title || 'El Melaminas'}</h1>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+            {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+          </Button>
         </header>
 
         {/* Content */}

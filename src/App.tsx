@@ -8,6 +8,8 @@ import BusinessProfilePage from "@/pages/BusinessProfilePage";
 import NewQuotationPage from "@/pages/NewQuotationPage";
 import HistoryPage from "@/pages/HistoryPage";
 import UsersPage from "@/pages/UsersPage";
+import ClientsPage from "@/pages/ClientsPage";
+import QuotationDetailPage from "@/pages/QuotationDetailPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,8 +24,10 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/perfil" element={<BusinessProfilePage />} />
             <Route path="/cotizacion/nueva" element={<NewQuotationPage />} />
-            <Route path="/cotizacion/:id" element={<NewQuotationPage />} />
+            <Route path="/cotizacion/:id" element={<QuotationDetailPage />} />
+            <Route path="/cotizacion/:id/editar" element={<NewQuotationPage />} />
             <Route path="/historial" element={<HistoryPage />} />
+            <Route path="/clientes" element={<ClientsPage />} />
             <Route path="/usuarios" element={<UsersPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

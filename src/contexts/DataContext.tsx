@@ -16,6 +16,7 @@ import {
   ApiQuotationItem
 } from '@/lib/mappers';
 import { useAuth } from './AuthContext';
+import { useCatalogs } from './CatalogContext';
 
 interface DataContextType {
   // Estado de carga
@@ -64,6 +65,7 @@ const defaultBusinessProfile: BusinessProfile = {
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
+  const { getMaterialName, getColorName, getFinishName } = useCatalogs();
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +156,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Obtener detalle de items
           const detailResponse = await api.get<ApiQuotationItem[]>(`/cotizacion-detalle/cotizacion/${apiQuotation.id}`);
           const items = detailResponse.success && detailResponse.data 
-            ? detailResponse.data.map(mapApiQuotationItem)
+            ? detailResponse.data.map(apiItem => {
+                const item = mapApiQuotationItem(apiItem);
+                // Enriquecer con nombres del catálogo para mostrar en PDF
+                return {
+                  ...item,
+                  _materialName: getMaterialName(item.material),
+                  _colorName: getColorName(item.sheetColor),
+                  _finishName: item.finish ? getFinishName(item.finish) : undefined
+                };
+              })
             : [];
           
           quotationsWithDetails.push(mapApiQuotation(apiQuotation, items, client));
@@ -163,7 +174,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       setQuotations(quotationsWithDetails);
     }
-  }, [clients]);
+  }, [clients, getMaterialName, getColorName, getFinishName]);
 
   const getNextFolio = async (): Promise<string> => {
     const response = await api.get<string>('/cotizaciones/util/siguiente-folio');

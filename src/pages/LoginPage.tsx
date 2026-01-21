@@ -18,22 +18,25 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simular delay de red
-    setTimeout(() => {
-      const result = login(email, password);
+    try {
+      const result = await login(email, password);
       
       if (result.success) {
         navigate('/');
       } else {
         setError(result.error || 'Error al iniciar sesión');
       }
+    } catch (err) {
+      setError('Error de conexión. Intenta de nuevo.');
+      console.error('Login error:', err);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -107,7 +110,7 @@ const LoginPage: React.FC = () => {
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
-                <span className="animate-pulse">Ingresando...</span>
+                <span className="animate-pulse">Conectando...</span>
               ) : (
                 <>
                   <LogIn className="w-4 h-4 mr-2" />
@@ -121,7 +124,7 @@ const LoginPage: React.FC = () => {
       </Card>
 
       <p className="text-xs text-muted-foreground text-center mt-6">
-        Datos almacenados localmente
+        Conectado a API El Melaminas
       </p>
     </div>
   );

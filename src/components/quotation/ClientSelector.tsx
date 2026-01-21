@@ -53,7 +53,7 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
     setNewClient(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateClient = () => {
+  const handleCreateClient = async () => {
     if (!newClient.name.trim()) {
       toast.error('El nombre es obligatorio');
       return;
@@ -67,7 +67,7 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
       return;
     }
 
-    const client = addClient({
+    const client = await addClient({
       name: newClient.name.trim(),
       phone: newClient.phone.trim(),
       whatsapp: newClient.whatsapp.trim() || undefined,
@@ -77,18 +77,22 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
       notes: newClient.notes.trim() || undefined,
     });
 
-    onSelectClient(client);
-    setSheetOpen(false);
-    setNewClient({
-      name: '',
-      phone: '',
-      whatsapp: '',
-      email: '',
-      address: '',
-      city: '',
-      notes: '',
-    });
-    toast.success('Cliente creado exitosamente');
+    if (client) {
+      onSelectClient(client);
+      setSheetOpen(false);
+      setNewClient({
+        name: '',
+        phone: '',
+        whatsapp: '',
+        email: '',
+        address: '',
+        city: '',
+        notes: '',
+      });
+      toast.success('Cliente creado exitosamente');
+    } else {
+      toast.error('Error al crear cliente');
+    }
   };
 
   return (

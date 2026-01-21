@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { ClientSelector } from '@/components/quotation/ClientSelector';
 import { FurnitureItemForm } from '@/components/quotation/FurnitureItemForm';
+import { QuotationActions } from '@/components/quotation/QuotationActions';
 import { useData } from '@/contexts/DataContext';
 import { Client, FurnitureItem, QuotationStatus, Quotation } from '@/types';
 import { downloadQuotationPDF } from '@/utils/pdfGenerator';
@@ -478,13 +479,8 @@ const DesktopQuotationList: React.FC<ListProps> = ({
                         {config.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <Button size="sm" variant="ghost" onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditQuotation(quotation);
-                      }}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
+                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                      <QuotationActions quotation={quotation} variant="icon" />
                     </TableCell>
                   </TableRow>
                 );
@@ -949,11 +945,13 @@ const MobileQuotationList: React.FC<ListProps> = ({
                 <Card 
                   key={quotation.id} 
                   className="cursor-pointer hover:bg-muted/30"
-                  onClick={() => handleEditQuotation(quotation)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div 
+                        className="flex items-center gap-3 min-w-0 flex-1"
+                        onClick={() => handleEditQuotation(quotation)}
+                      >
                         <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
                           <StatusIcon className={`w-5 h-5 ${config.color}`} />
                         </div>
@@ -962,11 +960,16 @@ const MobileQuotationList: React.FC<ListProps> = ({
                           <p className="text-sm text-muted-foreground">{quotation.folio}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(quotation.total)}</p>
-                        <Badge variant="outline" className={`${config.color} border-current`}>
-                          {config.label}
-                        </Badge>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right" onClick={() => handleEditQuotation(quotation)}>
+                          <p className="font-semibold">{formatCurrency(quotation.total)}</p>
+                          <Badge variant="outline" className={`${config.color} border-current`}>
+                            {config.label}
+                          </Badge>
+                        </div>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <QuotationActions quotation={quotation} variant="dropdown" />
+                        </div>
                       </div>
                     </div>
                   </CardContent>

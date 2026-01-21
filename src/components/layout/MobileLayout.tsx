@@ -1,7 +1,11 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, FilePlus, History, Users, Settings } from 'lucide-react';
+import { Home, FilePlus, History, Users, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { USER_ROLES } from '@/types';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -23,14 +27,39 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   showHeader = true 
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       {showHeader && (
-        <header className="sticky top-0 z-40 bg-primary text-primary-foreground px-4 py-4 safe-area-top">
+        <header className="sticky top-0 z-40 bg-primary text-primary-foreground px-4 py-3 safe-area-top">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold">{title || 'El Melaminas'}</h1>
+            {currentUser && (
+              <div className="flex items-center gap-2">
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs opacity-80">{currentUser.name}</p>
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                    {USER_ROLES[currentUser.role].label}
+                  </Badge>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleLogout}
+                  className="text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
+            )}
           </div>
         </header>
       )}

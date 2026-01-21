@@ -583,10 +583,10 @@ Actualmente el sistema usa **localStorage** para persistencia:
 
 ### Migración a Backend
 
-La arquitectura está preparada para migrar a Lovable Cloud (Supabase):
+La arquitectura está preparada para migrar a un backend en la nube:
 - Todos los datos pasan por `DataContext`
 - Las operaciones CRUD están centralizadas
-- Compatible con REST API o Supabase
+- Compatible con REST API
 
 ---
 
@@ -603,5 +603,5 @@ Para soporte técnico o preguntas sobre el sistema, contactar al equipo de desar
 ---
 
 <p align="center">
-  Desarrollado con ❤️ usando <a href="https://lovable.dev">Lovable</a>
+  Desarrollado con ❤️ por <a href="https://uniline.cloud">Uniline - Innovación en la Nube</a>
 </p>

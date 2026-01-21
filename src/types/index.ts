@@ -59,7 +59,7 @@ export interface FurnitureItem {
   width?: number;
   depth?: number;
   measureUnit: 'cm' | 'm' | 'pulgadas';
-  // Materiales
+  // Materiales (IDs para API)
   material: string;
   sheetCount: number;
   sheetColor: string;
@@ -69,6 +69,10 @@ export interface FurnitureItem {
   quantity: number;
   subtotal: number;
   notes?: string;
+  // Display names (populated from catalog)
+  _materialName?: string;
+  _colorName?: string;
+  _finishName?: string;
 }
 
 export type QuotationStatus = 'borrador' | 'enviada' | 'aceptada' | 'rechazada';

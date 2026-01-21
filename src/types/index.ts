@@ -1,4 +1,15 @@
-// Tipos para el sistema de cotizaciones de carpintería
+// Tipos para el sistema de cotizaciones de carpintería - El Melaminas
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'admin' | 'vendedor' | 'instalador';
+  avatar?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
 
 export interface BusinessProfile {
   id: string;
@@ -131,3 +142,10 @@ export const COMMON_SHEET_COLORS = [
   'Natural',
   'Otro'
 ];
+
+// Roles de usuario
+export const USER_ROLES = {
+  admin: { label: 'Administrador', color: 'bg-primary' },
+  vendedor: { label: 'Vendedor', color: 'bg-info' },
+  instalador: { label: 'Instalador', color: 'bg-success' }
+};

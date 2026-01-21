@@ -1,14 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 import { useData } from '@/contexts/DataContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   FileText, 
   Plus, 
-  Building2, 
   TrendingUp, 
   Clock, 
   CheckCircle2, 
@@ -20,22 +19,29 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const statusConfig = {
-  borrador: { label: 'Borrador', variant: 'secondary' as const, icon: Clock, className: '' },
-  enviada: { label: 'Enviada', variant: 'default' as const, icon: Send, className: 'bg-info hover:bg-info/90' },
-  aceptada: { label: 'Aceptada', variant: 'default' as const, icon: CheckCircle2, className: 'bg-success hover:bg-success/90' },
-  rechazada: { label: 'Rechazada', variant: 'destructive' as const, icon: XCircle, className: '' },
+  borrador: { label: 'Borrador', icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted' },
+  enviada: { label: 'Enviada', icon: Send, color: 'text-info', bg: 'bg-info/10' },
+  aceptada: { label: 'Aceptada', icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
+  rechazada: { label: 'Rechazada', icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
 };
 
 const Dashboard: React.FC = () => {
-  const { quotations, businessProfile } = useData();
+  const { quotations } = useData();
+
+  // Calcular estadísticas del mes actual
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const monthQuotations = quotations.filter(q => {
+    const date = new Date(q.createdAt);
+    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+  });
 
   const stats = {
     total: quotations.length,
-    borradores: quotations.filter(q => q.status === 'borrador').length,
-    enviadas: quotations.filter(q => q.status === 'enviada').length,
+    pendientes: quotations.filter(q => q.status === 'enviada' || q.status === 'borrador').length,
     aceptadas: quotations.filter(q => q.status === 'aceptada').length,
-    rechazadas: quotations.filter(q => q.status === 'rechazada').length,
-    montoTotal: quotations
+    ingresosMes: monthQuotations
       .filter(q => q.status === 'aceptada')
       .reduce((sum, q) => sum + q.total, 0),
   };
@@ -48,181 +54,143 @@ const Dashboard: React.FC = () => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   return (
-    <MainLayout>
+    <MobileLayout title="El Melaminas">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              ¡Hola, {businessProfile.ownerName?.split(' ')[0] || 'Carpintero'}!
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Aquí está el resumen de tus cotizaciones
-            </p>
-          </div>
-          <Button asChild size="lg">
-            <Link to="/cotizacion/nueva">
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Cotización
-            </Link>
-          </Button>
-        </div>
-
-        {/* Verificar si el perfil está configurado */}
-        {!businessProfile.businessName && (
-          <Card className="border-warning bg-warning/10">
-            <CardContent className="flex items-center gap-4 py-4">
-              <Building2 className="w-8 h-8 text-warning" />
-              <div className="flex-1">
-                <p className="font-medium">Configura tu perfil de negocio</p>
-                <p className="text-sm text-muted-foreground">
-                  Agrega tu logo y datos para que aparezcan en tus cotizaciones
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link to="/perfil">Configurar</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Estadísticas */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
+        {/* Stats Grid - 2x2 como en la imagen */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="bg-card">
+            <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="text-xs text-muted-foreground">Total</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="bg-card">
+            <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-info/10">
-                  <Send className="w-5 h-5 text-info" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.enviadas}</p>
-                  <p className="text-sm text-muted-foreground">Enviadas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-success/10">
+                <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
                   <CheckCircle2 className="w-5 h-5 text-success" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.aceptadas}</p>
-                  <p className="text-sm text-muted-foreground">Aceptadas</p>
+                  <p className="text-xs text-muted-foreground">Aceptadas</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="bg-card">
+            <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/20">
+                <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-warning" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.pendientes}</p>
+                  <p className="text-xs text-muted-foreground">Pendientes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-xl font-bold">{formatCurrency(stats.montoTotal)}</p>
-                  <p className="text-sm text-muted-foreground">Ventas</p>
+                  <p className="text-lg font-bold">{formatCurrency(stats.ingresosMes)}</p>
+                  <p className="text-xs text-muted-foreground">Ingresos/mes</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Cotizaciones recientes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Cotizaciones Recientes</CardTitle>
-              <CardDescription>Últimas cotizaciones creadas o actualizadas</CardDescription>
-            </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/historial">
-                Ver todas
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {recentQuotations.length === 0 ? (
-              <div className="text-center py-8">
+        {/* Quick Action */}
+        <Button asChild size="lg" className="w-full h-14 text-base">
+          <Link to="/cotizacion/nueva">
+            <Plus className="w-5 h-5 mr-2" />
+            Nueva Cotización
+          </Link>
+        </Button>
+
+        {/* Recent Quotations */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Recientes</h2>
+            <Link to="/historial" className="text-sm text-primary flex items-center">
+              Ver todas
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {recentQuotations.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No hay cotizaciones aún</p>
-                <Button asChild className="mt-4">
-                  <Link to="/cotizacion/nueva">Crear primera cotización</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentQuotations.map((quotation) => {
-                  const config = statusConfig[quotation.status];
-                  const StatusIcon = config.icon;
-                  
-                  return (
-                    <Link
-                      key={quotation.id}
-                      to={`/cotizacion/${quotation.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0">
-                          <StatusIcon className={`w-5 h-5 ${
-                            quotation.status === 'aceptada' ? 'text-success' :
-                            quotation.status === 'rechazada' ? 'text-destructive' :
-                            quotation.status === 'enviada' ? 'text-info' :
-                            'text-muted-foreground'
-                          }`} />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {recentQuotations.map((quotation) => {
+                const config = statusConfig[quotation.status];
+                const StatusIcon = config.icon;
+                
+                return (
+                  <Link
+                    key={quotation.id}
+                    to={`/cotizacion/${quotation.id}`}
+                    className="block"
+                  >
+                    <Card className="hover:bg-muted/30 transition-colors">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
+                              <StatusIcon className={`w-5 h-5 ${config.color}`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm truncate">{quotation.client.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{quotation.folio}</span>
+                                <span>•</span>
+                                <span>{format(new Date(quotation.updatedAt), "d MMM", { locale: es })}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <p className="font-semibold text-sm">{formatCurrency(quotation.total)}</p>
+                            <Badge variant="outline" className={`text-xs ${config.color} border-current`}>
+                              {config.label}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{quotation.folio}</p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {quotation.client.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <div className="text-right hidden sm:block">
-                          <p className="font-medium">{formatCurrency(quotation.total)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(quotation.updatedAt), "d MMM", { locale: es })}
-                          </p>
-                        </div>
-                        <Badge 
-                          variant={config.variant}
-                          className={config.className}
-                        >
-                          {config.label}
-                        </Badge>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-    </MainLayout>
+    </MobileLayout>
   );
 };
 

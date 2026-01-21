@@ -1,22 +1,62 @@
-import { BusinessProfile, Client, Quotation, FurnitureItem } from '@/types';
+import { BusinessProfile, Client, Quotation, FurnitureItem, User } from '@/types';
 
-// Perfil de negocio de ejemplo
+// Perfil de negocio - El Melaminas
 export const mockBusinessProfile: BusinessProfile = {
   id: '1',
-  businessName: 'Carpintería Los Pinos',
-  ownerName: 'Juan Carlos Martínez',
+  businessName: 'El Melaminas',
+  ownerName: 'Carlos Ramírez',
   phone: '555-123-4567',
   whatsapp: '5551234567',
-  email: 'contacto@carpinteriapinos.com',
-  address: 'Calle Roble #123, Col. Centro',
+  email: 'contacto@elmelaminas.com',
+  address: 'Av. Principal #456, Col. Centro',
   city: 'Ciudad de México',
   state: 'CDMX',
-  rfc: 'MAPJ800101ABC',
-  facebook: 'carpinteriapinos',
-  instagram: '@carpinteria_pinos',
-  primaryColor: '25 95% 35%', // Marrón cálido
-  secondaryColor: '45 80% 50%' // Dorado/Arena
+  rfc: 'RAMC850201XYZ',
+  facebook: 'elmelaminas',
+  instagram: '@elmelaminas',
+  primaryColor: '25 70% 35%',
+  secondaryColor: '40 60% 50%'
 };
+
+// Usuarios del sistema
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    name: 'Carlos Ramírez',
+    email: 'carlos@elmelaminas.com',
+    phone: '555-123-4567',
+    role: 'admin',
+    isActive: true,
+    createdAt: new Date('2024-01-01')
+  },
+  {
+    id: '2',
+    name: 'María López',
+    email: 'maria@elmelaminas.com',
+    phone: '555-234-5678',
+    role: 'vendedor',
+    isActive: true,
+    createdAt: new Date('2024-02-15')
+  },
+  {
+    id: '3',
+    name: 'Roberto García',
+    email: 'roberto@elmelaminas.com',
+    phone: '555-345-6789',
+    role: 'instalador',
+    isActive: true,
+    createdAt: new Date('2024-03-10')
+  },
+  {
+    id: '4',
+    name: 'Ana Martínez',
+    email: 'ana@elmelaminas.com',
+    phone: '555-456-7890',
+    role: 'vendedor',
+    isActive: false,
+    createdAt: new Date('2024-04-20')
+  }
+];
 
 // Clientes de ejemplo
 export const mockClients: Client[] = [
@@ -146,6 +186,38 @@ export const mockQuotations: Quotation[] = [
     status: 'borrador',
     createdAt: new Date('2024-12-15'),
     updatedAt: new Date('2024-12-15')
+  },
+  {
+    id: '4',
+    folio: 'COT-2025-001',
+    clientId: '1',
+    client: mockClients[0],
+    items: [mockFurnitureItems[1]],
+    subtotal: 17000,
+    total: 17000,
+    deliveryDays: 12,
+    validityDays: 15,
+    paymentTerms: '50% anticipo, 50% contra entrega',
+    advancePercentage: 50,
+    status: 'aceptada',
+    createdAt: new Date('2025-01-05'),
+    updatedAt: new Date('2025-01-08')
+  },
+  {
+    id: '5',
+    folio: 'COT-2025-002',
+    clientId: '2',
+    client: mockClients[1],
+    items: [mockFurnitureItems[0]],
+    subtotal: 15000,
+    total: 15000,
+    deliveryDays: 18,
+    validityDays: 30,
+    paymentTerms: '100% anticipo',
+    advancePercentage: 100,
+    status: 'enviada',
+    createdAt: new Date('2025-01-10'),
+    updatedAt: new Date('2025-01-10')
   }
 ];
 

@@ -2,15 +2,85 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Quotation, BusinessProfile, FurnitureItem } from '@/types';
 
+// Helper to parse HSL string and convert to RGB
+const hslToRgb = (hslString: string): [number, number, number] => {
+  // Default brown color if parsing fails
+  const defaultColor: [number, number, number] = [139, 69, 45];
+  
+  if (!hslString) return defaultColor;
+  
+  // Remove any "hsl(" wrapper and clean up
+  const cleanHsl = hslString.replace(/hsl\(|\)/g, '').trim();
+  
+  // Parse "H S% L%" format
+  const parts = cleanHsl.split(/[\s,]+/);
+  if (parts.length < 3) return defaultColor;
+  
+  const h = parseFloat(parts[0]) / 360;
+  const s = parseFloat(parts[1].replace('%', '')) / 100;
+  const l = parseFloat(parts[2].replace('%', '')) / 100;
+  
+  if (isNaN(h) || isNaN(s) || isNaN(l)) return defaultColor;
+  
+  let r, g, b;
+  
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+};
+
+// Get display name for material (uses stored name or ID)
+const getMaterialDisplay = (item: FurnitureItem): string => {
+  return item._materialName || item.material || '-';
+};
+
+// Get display name for color
+const getColorDisplay = (item: FurnitureItem): string => {
+  return item._colorName || item.sheetColor || '-';
+};
+
+// Get display name for finish
+const getFinishDisplay = (item: FurnitureItem): string => {
+  return item._finishName || item.finish || '';
+};
+
 export const generateQuotationPDF = (
   quotation: Quotation,
-  businessProfile: BusinessProfile
+  businessProfile: BusinessProfile | null
 ): jsPDF => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  // Colors from business profile (convert HSL to RGB approximation)
-  const primaryColor: [number, number, number] = [34, 89, 70]; // Deep brown/wood color
+  // Use default profile if none provided
+  const profile = businessProfile || {
+    businessName: 'Mi Negocio',
+    address: '',
+    city: '',
+    phone: '',
+    email: '',
+    primaryColor: '340 30% 45%',
+    secondaryColor: '40 60% 50%'
+  };
+  
+  // Colors from business profile
+  const primaryColor = hslToRgb(profile.primaryColor);
   const textColor: [number, number, number] = [51, 51, 51];
   
   let yPosition = 20;
@@ -19,16 +89,27 @@ export const generateQuotationPDF = (
   doc.setFontSize(24);
   doc.setTextColor(...primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(businessProfile.businessName, pageWidth / 2, yPosition, { align: 'center' });
+  doc.text(profile.businessName, pageWidth / 2, yPosition, { align: 'center' });
   
   yPosition += 8;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...textColor);
-  doc.text(`${businessProfile.address}, ${businessProfile.city}`, pageWidth / 2, yPosition, { align: 'center' });
   
-  yPosition += 5;
-  doc.text(`Tel: ${businessProfile.phone} | Email: ${businessProfile.email}`, pageWidth / 2, yPosition, { align: 'center' });
+  const addressLine = [profile.address, profile.city].filter(Boolean).join(', ');
+  if (addressLine) {
+    doc.text(addressLine, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+  }
+  
+  const contactLine = [
+    profile.phone ? `Tel: ${profile.phone}` : null,
+    profile.email ? `Email: ${profile.email}` : null
+  ].filter(Boolean).join(' | ');
+  
+  if (contactLine) {
+    doc.text(contactLine, pageWidth / 2, yPosition, { align: 'center' });
+  }
 
   // Line separator
   yPosition += 8;
@@ -77,7 +158,9 @@ export const generateQuotationPDF = (
   yPosition += 7;
   doc.setFontSize(10);
   doc.text(`Tel: ${quotation.client.phone}`, 25, yPosition + 2);
-  doc.text(`Dirección: ${quotation.client.address}`, 80, yPosition + 2);
+  if (quotation.client.address) {
+    doc.text(`Dirección: ${quotation.client.address}`, 80, yPosition + 2);
+  }
 
   // Items table
   yPosition += 20;
@@ -87,10 +170,22 @@ export const generateQuotationPDF = (
       ? `${item.height}x${item.width}${item.depth ? `x${item.depth}` : ''} ${item.measureUnit}`
       : '-';
     
+    // Use display names instead of IDs
+    const materialName = getMaterialDisplay(item);
+    const colorName = getColorDisplay(item);
+    const finishName = getFinishDisplay(item);
+    
+    const materialInfo = [
+      materialName,
+      colorName,
+      finishName ? `Acabado: ${finishName}` : null,
+      item.sheetCount > 1 ? `${item.sheetCount} hojas` : null
+    ].filter(Boolean).join('\n');
+    
     return [
       (index + 1).toString(),
-      item.name,
-      `${item.material}\n${item.sheetColor}\n${item.sheetCount} hojas`,
+      item.name + (item.description ? `\n${item.description}` : ''),
+      materialInfo,
       dimensions,
       item.quantity.toString(),
       `$${item.unitPrice.toLocaleString('es-MX')}`,
@@ -195,17 +290,17 @@ export const generateQuotationPDF = (
   doc.setFontSize(8);
   doc.setTextColor(128, 128, 128);
   doc.text('Gracias por su preferencia', pageWidth / 2, footerY, { align: 'center' });
-  doc.text(`${businessProfile.businessName} - ${businessProfile.phone}`, pageWidth / 2, footerY + 4, { align: 'center' });
+  doc.text(`${profile.businessName} - ${profile.phone}`, pageWidth / 2, footerY + 4, { align: 'center' });
 
   return doc;
 };
 
-export const downloadQuotationPDF = (quotation: Quotation, businessProfile: BusinessProfile): void => {
+export const downloadQuotationPDF = (quotation: Quotation, businessProfile: BusinessProfile | null): void => {
   const doc = generateQuotationPDF(quotation, businessProfile);
   doc.save(`${quotation.folio}.pdf`);
 };
 
-export const getQuotationPDFBlob = (quotation: Quotation, businessProfile: BusinessProfile): Blob => {
+export const getQuotationPDFBlob = (quotation: Quotation, businessProfile: BusinessProfile | null): Blob => {
   const doc = generateQuotationPDF(quotation, businessProfile);
   return doc.output('blob');
 };

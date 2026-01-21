@@ -1,6 +1,7 @@
 import { Quotation, BusinessProfile } from '@/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { generateQuotationImage, canShareFiles, downloadQuotationImage } from './quotationToImage';
 
 /**
  * Generates a formatted WhatsApp message for a quotation
@@ -65,10 +66,7 @@ export const generateWhatsAppMessage = (
 };
 
 /**
- * Opens WhatsApp with a pre-filled message for the quotation
- * @param quotation The quotation to share
- * @param businessProfile The business profile for branding
- * @param phoneNumber Optional: specific phone number to send to (without + or spaces)
+ * Opens WhatsApp with a pre-filled message for the quotation (text only fallback)
  */
 export const shareViaWhatsApp = (
   quotation: Quotation,
@@ -78,8 +76,6 @@ export const shareViaWhatsApp = (
   const message = generateWhatsAppMessage(quotation, businessProfile);
   const encodedMessage = encodeURIComponent(message);
   
-  // If phone number provided, send directly to that number
-  // Otherwise, open WhatsApp to choose contact
   const url = phoneNumber 
     ? `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodedMessage}`
     : `https://wa.me/?text=${encodedMessage}`;
@@ -88,7 +84,7 @@ export const shareViaWhatsApp = (
 };
 
 /**
- * Shares to client's WhatsApp if available
+ * Shares to client's WhatsApp if available (text only fallback)
  */
 export const shareToClientWhatsApp = (
   quotation: Quotation,
@@ -96,5 +92,45 @@ export const shareToClientWhatsApp = (
 ): void => {
   const clientPhone = quotation.client.whatsapp || quotation.client.phone;
   shareViaWhatsApp(quotation, businessProfile, clientPhone);
+};
+
+/**
+ * Share quotation as image using Web Share API (like banking apps)
+ * Falls back to downloading image + text-only WhatsApp if not supported
+ */
+export const shareQuotationAsImage = async (
+  quotation: Quotation,
+  businessProfile: BusinessProfile | null
+): Promise<{ success: boolean; fallback: boolean }> => {
+  try {
+    // Generate the image
+    const imageBlob = await generateQuotationImage(quotation, businessProfile);
+    const imageFile = new File([imageBlob], `${quotation.folio}.png`, { type: 'image/png' });
+    
+    // Check if we can share files natively
+    if (canShareFiles()) {
+      await navigator.share({
+        files: [imageFile],
+        title: `Cotización ${quotation.folio}`,
+        text: `Cotización para ${quotation.client.name} - Total: ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(quotation.total)}`
+      });
+      return { success: true, fallback: false };
+    }
+    
+    // Fallback: Download image and open WhatsApp with text
+    downloadQuotationImage(imageBlob, `${quotation.folio}.png`);
+    
+    // Open WhatsApp with text message
+    const clientPhone = quotation.client.whatsapp || quotation.client.phone;
+    shareViaWhatsApp(quotation, businessProfile, clientPhone);
+    
+    return { success: true, fallback: true };
+  } catch (error) {
+    // User cancelled or error occurred
+    if ((error as Error).name === 'AbortError') {
+      return { success: false, fallback: false };
+    }
+    throw error;
+  }
 };
 

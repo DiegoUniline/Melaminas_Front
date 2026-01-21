@@ -3,6 +3,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DataProvider } from "@/contexts/DataContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Dashboard from "@/pages/Dashboard";
 import BusinessProfilePage from "@/pages/BusinessProfilePage";
 import NewQuotationPage from "@/pages/NewQuotationPage";
@@ -10,6 +12,7 @@ import HistoryPage from "@/pages/HistoryPage";
 import UsersPage from "@/pages/UsersPage";
 import ClientsPage from "@/pages/ClientsPage";
 import QuotationDetailPage from "@/pages/QuotationDetailPage";
+import LoginPage from "@/pages/LoginPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,22 +20,25 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <DataProvider>
-        <Toaster position="top-center" />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/perfil" element={<BusinessProfilePage />} />
-            <Route path="/cotizacion/nueva" element={<NewQuotationPage />} />
-            <Route path="/cotizacion/:id" element={<QuotationDetailPage />} />
-            <Route path="/cotizacion/:id/editar" element={<NewQuotationPage />} />
-            <Route path="/historial" element={<HistoryPage />} />
-            <Route path="/clientes" element={<ClientsPage />} />
-            <Route path="/usuarios" element={<UsersPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </DataProvider>
+      <AuthProvider>
+        <DataProvider>
+          <Toaster position="top-center" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/perfil" element={<ProtectedRoute><BusinessProfilePage /></ProtectedRoute>} />
+              <Route path="/cotizacion/nueva" element={<ProtectedRoute><NewQuotationPage /></ProtectedRoute>} />
+              <Route path="/cotizacion/:id" element={<ProtectedRoute><QuotationDetailPage /></ProtectedRoute>} />
+              <Route path="/cotizacion/:id/editar" element={<ProtectedRoute><NewQuotationPage /></ProtectedRoute>} />
+              <Route path="/historial" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+              <Route path="/clientes" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+              <Route path="/usuarios" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </DataProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

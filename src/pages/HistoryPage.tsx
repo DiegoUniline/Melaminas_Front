@@ -5,6 +5,7 @@ import { useData } from '@/contexts/DataContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   FileText, 
   Plus, 
@@ -12,7 +13,8 @@ import {
   CheckCircle2, 
   XCircle, 
   Send,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -26,6 +28,7 @@ const statusConfig = {
 
 const HistoryPage: React.FC = () => {
   const { quotations } = useData();
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -36,24 +39,41 @@ const HistoryPage: React.FC = () => {
     }).format(amount);
   };
 
-  const sortedQuotations = [...quotations].sort(
+  const filteredQuotations = quotations.filter(q =>
+    q.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.folio.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedQuotations = [...filteredQuotations].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   return (
     <MobileLayout title="Historial">
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{quotations.length} cotizaciones</p>
+        {/* Search and Add */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por cliente o folio..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
           <Button asChild size="sm">
             <Link to="/cotizacion/nueva">
-              <Plus className="w-4 h-4 mr-1" />
-              Nueva
+              <Plus className="w-4 h-4" />
             </Link>
           </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="flex gap-2">
+          <Badge variant="secondary" className="px-3 py-1">
+            {filteredQuotations.length} cotizaciones
+          </Badge>
         </div>
 
         {/* Lista de cotizaciones */}

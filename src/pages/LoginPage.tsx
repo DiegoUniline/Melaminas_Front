@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { LogIn, Eye, EyeOff, AlertCircle, Download } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { isInstalled } = usePWAInstall();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -122,6 +124,17 @@ const LoginPage: React.FC = () => {
 
         </CardContent>
       </Card>
+
+      {/* Install App Link */}
+      {!isInstalled && (
+        <Link 
+          to="/instalar" 
+          className="flex items-center gap-2 text-sm text-primary hover:underline mt-4"
+        >
+          <Download className="w-4 h-4" />
+          Instalar aplicación
+        </Link>
+      )}
 
       <p className="text-xs text-muted-foreground text-center mt-6">
         Conectado a API El Melaminas

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 
 // Interfaces para los catálogos de la API
@@ -32,11 +32,20 @@ export interface Catalogs {
   roles: CatalogItem[];
 }
 
+interface CachedCatalogs {
+  data: Catalogs;
+  timestamp: number;
+}
+
+// Cache duration: 24 hours in milliseconds
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
+const CACHE_KEY = 'elmelaminas_catalogs_cache';
+
 interface CatalogContextType {
   catalogs: Catalogs | null;
   isLoading: boolean;
   error: string | null;
-  refreshCatalogs: () => Promise<void>;
+  refreshCatalogs: (forceRefresh?: boolean) => Promise<void>;
   // Helpers para obtener nombres por ID
   getCategoryName: (id: string) => string;
   getProductName: (id: string) => string;
@@ -53,34 +62,109 @@ interface CatalogContextType {
   getActiveColors: (materialId?: string) => CatalogColor[];
   getActiveFinishes: () => CatalogItem[];
   getProductsByCategory: (categoryId: string) => CatalogProduct[];
+  // Cache info
+  lastUpdated: Date | null;
 }
 
 const CatalogContext = createContext<CatalogContextType | undefined>(undefined);
+
+// Load cached catalogs from localStorage
+const loadCachedCatalogs = (): CachedCatalogs | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached) as CachedCatalogs;
+    }
+  } catch (e) {
+    console.warn('Error loading cached catalogs:', e);
+  }
+  return null;
+};
+
+// Save catalogs to localStorage
+const saveCatalogsToCache = (data: Catalogs): void => {
+  try {
+    const cacheData: CachedCatalogs = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+  } catch (e) {
+    console.warn('Error saving catalogs to cache:', e);
+  }
+};
+
+// Check if cache is still valid
+const isCacheValid = (cached: CachedCatalogs): boolean => {
+  const now = Date.now();
+  const age = now - cached.timestamp;
+  return age < CACHE_DURATION_MS;
+};
 
 export const CatalogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [catalogs, setCatalogs] = useState<Catalogs | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchCatalogs = async () => {
-    setIsLoading(true);
-    setError(null);
-    
+  const fetchCatalogsFromAPI = useCallback(async (): Promise<Catalogs | null> => {
     const response = await api.get<Catalogs>('/catalogos/todos');
     
     if (response.success && response.data) {
-      setCatalogs(response.data);
+      return response.data;
     } else {
-      setError(response.error || 'Error al cargar catálogos');
-      console.error('Error loading catalogs:', response.error);
+      throw new Error(response.error || 'Error al cargar catálogos');
+    }
+  }, []);
+
+  const loadCatalogs = useCallback(async (forceRefresh: boolean = false) => {
+    setError(null);
+    
+    // Try to load from cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cached = loadCachedCatalogs();
+      
+      if (cached && isCacheValid(cached)) {
+        console.log('[Catalogs] Using cached data from', new Date(cached.timestamp).toLocaleString());
+        setCatalogs(cached.data);
+        setLastUpdated(new Date(cached.timestamp));
+        setIsLoading(false);
+        return;
+      }
     }
     
-    setIsLoading(false);
-  };
+    // Fetch from API
+    setIsLoading(true);
+    console.log('[Catalogs] Fetching from API...');
+    
+    try {
+      const data = await fetchCatalogsFromAPI();
+      if (data) {
+        setCatalogs(data);
+        saveCatalogsToCache(data);
+        setLastUpdated(new Date());
+        console.log('[Catalogs] Updated and cached');
+      }
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : 'Error desconocido';
+      setError(errorMsg);
+      console.error('Error loading catalogs:', errorMsg);
+      
+      // Try to use stale cache if available
+      const cached = loadCachedCatalogs();
+      if (cached) {
+        console.log('[Catalogs] Using stale cache due to error');
+        setCatalogs(cached.data);
+        setLastUpdated(new Date(cached.timestamp));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchCatalogsFromAPI]);
 
   useEffect(() => {
-    fetchCatalogs();
-  }, []);
+    loadCatalogs();
+  }, [loadCatalogs]);
 
   // Helper genérico para buscar nombre por ID
   const getNameById = (list: CatalogItem[] | undefined, id: string): string => {
@@ -131,7 +215,7 @@ export const CatalogProvider: React.FC<{ children: ReactNode }> = ({ children })
       catalogs,
       isLoading,
       error,
-      refreshCatalogs: fetchCatalogs,
+      refreshCatalogs: loadCatalogs,
       getCategoryName,
       getProductName,
       getMaterialName,
@@ -145,7 +229,8 @@ export const CatalogProvider: React.FC<{ children: ReactNode }> = ({ children })
       getActiveMaterials,
       getActiveColors,
       getActiveFinishes,
-      getProductsByCategory
+      getProductsByCategory,
+      lastUpdated
     }}>
       {children}
     </CatalogContext.Provider>

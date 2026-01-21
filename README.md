@@ -111,141 +111,161 @@ src/
 
 ---
 
-## 📊 Modelos de Datos
+## 📊 Base de Datos (Esquemas)
 
-### 👤 User (Usuario)
-
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | `string` | Identificador único | ✅ |
-| `name` | `string` | Nombre completo | ✅ |
-| `email` | `string` | Correo electrónico (único) | ✅ |
-| `password` | `string` | Contraseña | ✅ |
-| `phone` | `string` | Teléfono | ✅ |
-| `role` | `'superadmin' \| 'admin' \| 'vendedor' \| 'instalador'` | Rol del usuario | ✅ |
-| `avatar` | `string` | URL de imagen de perfil | ❌ |
-| `isActive` | `boolean` | Estado activo/inactivo | ✅ |
-| `createdAt` | `Date` | Fecha de creación | ✅ |
-
-> **Nota**: Al crear nuevos usuarios, se asigna la contraseña temporal `temp123` por defecto.
+> **Nota**: Actualmente los datos se almacenan en `localStorage` del navegador. La estructura está preparada para migración futura a base de datos real (PostgreSQL/Supabase).
 
 ---
 
-### 🏢 BusinessProfile (Perfil de Negocio)
+### 👤 Tabla: `users` (Usuarios)
 
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | `string` | Identificador único | ✅ |
-| `logo` | `string` | URL del logo | ❌ |
-| `businessName` | `string` | Nombre del negocio | ✅ |
-| `ownerName` | `string` | Nombre del propietario | ✅ |
-| `phone` | `string` | Teléfono principal | ✅ |
-| `whatsapp` | `string` | Número de WhatsApp | ❌ |
-| `email` | `string` | Correo electrónico | ✅ |
-| `address` | `string` | Dirección completa | ✅ |
-| `city` | `string` | Ciudad | ✅ |
-| `state` | `string` | Estado/Provincia | ✅ |
-| `rfc` | `string` | RFC fiscal | ❌ |
-| `facebook` | `string` | Usuario de Facebook | ❌ |
-| `instagram` | `string` | Usuario de Instagram | ❌ |
-| `primaryColor` | `string` | Color primario (HSL) | ✅ |
-| `secondaryColor` | `string` | Color secundario (HSL) | ✅ |
+Almacena los usuarios del sistema con sus credenciales y roles.
 
----
+| Campo | Tipo | Descripción | Requerido | Ejemplo |
+|-------|------|-------------|-----------|---------|
+| `id` | `string` | Identificador único | ✅ | `"1"` |
+| `name` | `string` | Nombre completo | ✅ | `"Carlos Ramírez"` |
+| `email` | `string` | Correo electrónico (único) | ✅ | `"carlos@elmelaminas.com"` |
+| `password` | `string` | Contraseña | ✅ | `"admin123"` |
+| `phone` | `string` | Teléfono | ✅ | `"555-123-4567"` |
+| `role` | `enum` | Rol del usuario | ✅ | `"admin"` |
+| `avatar` | `string` | URL de imagen de perfil | ❌ | `"https://..."` |
+| `isActive` | `boolean` | Estado activo/inactivo | ✅ | `true` |
+| `createdAt` | `Date` | Fecha de creación | ✅ | `2024-01-01` |
 
-### 👥 Client (Cliente)
+**Valores permitidos para `role`:**
+- `superadmin` - Super Administrador (acceso total)
+- `admin` - Administrador
+- `vendedor` - Vendedor
+- `instalador` - Instalador
 
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | `string` | Identificador único | ✅ |
-| `name` | `string` | Nombre completo | ✅ |
-| `phone` | `string` | Teléfono | ✅ |
-| `whatsapp` | `string` | Número de WhatsApp | ❌ |
-| `email` | `string` | Correo electrónico | ❌ |
-| `address` | `string` | Dirección | ✅ |
-| `city` | `string` | Ciudad | ❌ |
-| `notes` | `string` | Notas adicionales | ❌ |
-| `createdAt` | `Date` | Fecha de registro | ✅ |
+**Clave localStorage:** `carpinteria_users` (no implementado aún, usa mockData)
 
 ---
 
-### 🪑 FurnitureItem (Artículo de Mueble)
+### 🏢 Tabla: `business_profile` (Perfil del Negocio)
 
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | `string` | Identificador único | ✅ |
-| `category` | `FurnitureCategory` | Categoría del mueble | ✅ |
-| `customCategory` | `string` | Categoría personalizada | ❌ |
-| `name` | `string` | Nombre del mueble | ✅ |
-| `description` | `string` | Descripción detallada | ❌ |
-| `height` | `number` | Altura | ❌ |
-| `width` | `number` | Ancho | ❌ |
-| `depth` | `number` | Profundidad | ❌ |
-| `measureUnit` | `'cm' \| 'm' \| 'pulgadas'` | Unidad de medida | ✅ |
-| `material` | `string` | Tipo de material | ✅ |
-| `sheetCount` | `number` | Cantidad de hojas/láminas | ✅ |
-| `sheetColor` | `string` | Color de la lámina | ✅ |
-| `finish` | `string` | Acabado (mate, brillante, etc.) | ❌ |
-| `unitPrice` | `number` | Precio unitario | ✅ |
-| `quantity` | `number` | Cantidad | ✅ |
-| `subtotal` | `number` | Subtotal calculado | ✅ |
-| `notes` | `string` | Notas del artículo | ❌ |
+Configuración del negocio que aparece en cotizaciones y PDF.
 
-#### Categorías de Muebles (`FurnitureCategory`)
+| Campo | Tipo | Descripción | Requerido | Ejemplo |
+|-------|------|-------------|-----------|---------|
+| `id` | `string` | Identificador único | ✅ | `"1"` |
+| `logo` | `string` | Logo en base64 o URL | ❌ | `"data:image/png;base64,..."` |
+| `businessName` | `string` | Nombre del negocio | ✅ | `"El Melaminas"` |
+| `ownerName` | `string` | Nombre del propietario | ✅ | `"Carlos Ramírez"` |
+| `phone` | `string` | Teléfono principal | ✅ | `"555-123-4567"` |
+| `whatsapp` | `string` | Número de WhatsApp (sin guiones) | ❌ | `"5551234567"` |
+| `email` | `string` | Correo electrónico | ✅ | `"contacto@elmelaminas.com"` |
+| `address` | `string` | Dirección completa | ✅ | `"Av. Principal #456, Col. Centro"` |
+| `city` | `string` | Ciudad | ✅ | `"Ciudad de México"` |
+| `state` | `string` | Estado/Provincia | ✅ | `"CDMX"` |
+| `rfc` | `string` | RFC fiscal (México) | ❌ | `"RAMC850201XYZ"` |
+| `facebook` | `string` | Usuario de Facebook | ❌ | `"elmelaminas"` |
+| `instagram` | `string` | Usuario de Instagram | ❌ | `"@elmelaminas"` |
+| `primaryColor` | `string` | Color primario (formato HSL) | ✅ | `"25 70% 35%"` |
+| `secondaryColor` | `string` | Color secundario (formato HSL) | ✅ | `"40 60% 50%"` |
 
-| Valor | Etiqueta | Ejemplos |
-|-------|----------|----------|
+**Clave localStorage:** `carpinteria_business_profile`
+
+---
+
+### 👥 Tabla: `clients` (Clientes)
+
+Catálogo de clientes para cotizaciones.
+
+| Campo | Tipo | Descripción | Requerido | Ejemplo |
+|-------|------|-------------|-----------|---------|
+| `id` | `string` | Identificador único | ✅ | `"1"` |
+| `name` | `string` | Nombre completo | ✅ | `"María García López"` |
+| `phone` | `string` | Teléfono | ✅ | `"555-987-6543"` |
+| `whatsapp` | `string` | Número de WhatsApp (sin guiones) | ❌ | `"5559876543"` |
+| `email` | `string` | Correo electrónico | ❌ | `"maria.garcia@email.com"` |
+| `address` | `string` | Dirección completa | ✅ | `"Av. Reforma #456, Depto 12"` |
+| `city` | `string` | Ciudad | ❌ | `"Ciudad de México"` |
+| `notes` | `string` | Notas adicionales | ❌ | `"Prefiere contacto por WhatsApp"` |
+| `createdAt` | `Date` | Fecha de registro | ✅ | `2024-01-15` |
+
+**Clave localStorage:** `carpinteria_clients`
+
+---
+
+### 🪑 Tabla: `furniture_items` (Artículos de Mueble)
+
+Muebles individuales dentro de una cotización (embedded en `quotations.items`).
+
+| Campo | Tipo | Descripción | Requerido | Ejemplo |
+|-------|------|-------------|-----------|---------|
+| `id` | `string` | Identificador único | ✅ | `"1"` |
+| `category` | `enum` | Categoría del mueble | ✅ | `"cocinas-closets"` |
+| `customCategory` | `string` | Categoría personalizada (si es "otro") | ❌ | `"Mueble de baño"` |
+| `name` | `string` | Nombre del mueble | ✅ | `"Closet principal"` |
+| `description` | `string` | Descripción detallada | ❌ | `"Closet con puertas corredizas"` |
+| `height` | `number` | Altura | ❌ | `240` |
+| `width` | `number` | Ancho | ❌ | `300` |
+| `depth` | `number` | Profundidad | ❌ | `60` |
+| `measureUnit` | `enum` | Unidad de medida | ✅ | `"cm"` |
+| `material` | `string` | Tipo de material | ✅ | `"Melamina"` |
+| `sheetCount` | `number` | Cantidad de hojas/láminas | ✅ | `8` |
+| `sheetColor` | `string` | Color de la lámina | ✅ | `"Nogal"` |
+| `finish` | `string` | Acabado | ❌ | `"Mate"` |
+| `unitPrice` | `number` | Precio unitario (MXN) | ✅ | `15000` |
+| `quantity` | `number` | Cantidad | ✅ | `1` |
+| `subtotal` | `number` | Subtotal calculado (unitPrice × quantity) | ✅ | `15000` |
+| `notes` | `string` | Notas del artículo | ❌ | `"Incluye herrajes de calidad"` |
+
+**Valores permitidos para `category`:**
+| Valor | Etiqueta | Ejemplos de muebles |
+|-------|----------|---------------------|
 | `cocinas-closets` | Cocinas y Closets | Gabinete, Alacena, Closet, Vestidor, Despensero, Isla, Barra |
 | `recamara` | Muebles de Recámara | Cama, Cabecera, Buró, Cómoda, Tocador, Ropero, Zapatera |
-| `oficina` | Muebles de Oficina | Escritorio, Librero, Archivero, Mesa de juntas, Recepción, Credenza |
+| `oficina` | Muebles de Oficina | Escritorio, Librero, Archivero, Mesa de juntas, Recepción |
 | `otro` | Otro | Personalizado |
 
-#### Materiales Comunes
+**Valores permitidos para `measureUnit`:** `cm`, `m`, `pulgadas`
 
-```
-MDF, Melamina, Triplay, Madera de pino, Madera de encino, 
-Madera de cedro, Aglomerado, Formaica, Otro
-```
+**Materiales comunes:** MDF, Melamina, Triplay, Madera de pino, Madera de encino, Madera de cedro, Aglomerado, Formaica, Otro
 
-#### Colores de Hoja Comunes
-
-```
-Blanco, Negro, Chocolate, Nogal, Encino, Cerezo, 
-Caoba, Gris, Arena, Natural, Otro
-```
+**Colores de hoja comunes:** Blanco, Negro, Chocolate, Nogal, Encino, Cerezo, Caoba, Gris, Arena, Natural, Otro
 
 ---
 
-### 📄 Quotation (Cotización)
+### 📄 Tabla: `quotations` (Cotizaciones)
 
-| Campo | Tipo | Descripción | Requerido |
-|-------|------|-------------|-----------|
-| `id` | `string` | Identificador único | ✅ |
-| `folio` | `string` | Número de folio (ej: COT-2025-001) | ✅ |
-| `clientId` | `string` | ID del cliente | ✅ |
-| `client` | `Client` | Objeto cliente completo | ✅ |
-| `items` | `FurnitureItem[]` | Lista de muebles cotizados | ✅ |
-| `subtotal` | `number` | Subtotal antes de descuento | ✅ |
-| `discount` | `number` | Monto o porcentaje de descuento | ❌ |
-| `discountType` | `'percentage' \| 'fixed'` | Tipo de descuento | ❌ |
-| `total` | `number` | Total final | ✅ |
-| `deliveryDays` | `number` | Días de entrega | ✅ |
-| `validityDays` | `number` | Días de vigencia | ✅ |
-| `paymentTerms` | `string` | Condiciones de pago | ✅ |
-| `advancePercentage` | `number` | Porcentaje de anticipo | ❌ |
-| `observations` | `string` | Observaciones adicionales | ❌ |
-| `status` | `QuotationStatus` | Estado de la cotización | ✅ |
-| `createdAt` | `Date` | Fecha de creación | ✅ |
-| `updatedAt` | `Date` | Fecha de actualización | ✅ |
+Cotizaciones principales con todos los datos del cliente, muebles y condiciones.
 
-#### Estados de Cotización (`QuotationStatus`)
+| Campo | Tipo | Descripción | Requerido | Ejemplo |
+|-------|------|-------------|-----------|---------|
+| `id` | `string` | Identificador único | ✅ | `"1"` |
+| `folio` | `string` | Número de folio único | ✅ | `"COT-2025-001"` |
+| `clientId` | `string` | ID del cliente (FK) | ✅ | `"1"` |
+| `client` | `Client` | Objeto cliente completo (denormalizado) | ✅ | `{name: "María...", ...}` |
+| `items` | `FurnitureItem[]` | Lista de muebles cotizados | ✅ | `[{...}, {...}]` |
+| `subtotal` | `number` | Subtotal antes de descuento (MXN) | ✅ | `32000` |
+| `discount` | `number` | Monto o porcentaje de descuento | ❌ | `10` |
+| `discountType` | `enum` | Tipo de descuento | ❌ | `"percentage"` |
+| `total` | `number` | Total final (MXN) | ✅ | `28800` |
+| `deliveryDays` | `number` | Días de entrega estimados | ✅ | `15` |
+| `validityDays` | `number` | Días de vigencia de la cotización | ✅ | `30` |
+| `paymentTerms` | `string` | Condiciones de pago | ✅ | `"50% anticipo, 50% contra entrega"` |
+| `advancePercentage` | `number` | Porcentaje de anticipo | ❌ | `50` |
+| `observations` | `string` | Observaciones adicionales | ❌ | `"Instalación incluida"` |
+| `status` | `enum` | Estado de la cotización | ✅ | `"enviada"` |
+| `createdAt` | `Date` | Fecha de creación | ✅ | `2024-12-01` |
+| `updatedAt` | `Date` | Fecha de última actualización | ✅ | `2024-12-05` |
 
-| Valor | Etiqueta | Descripción |
-|-------|----------|-------------|
-| `borrador` | Borrador | En proceso de creación |
-| `enviada` | Enviada | Enviada al cliente |
-| `aceptada` | Aceptada | Cliente aceptó |
-| `rechazada` | Rechazada | Cliente rechazó |
+**Valores permitidos para `discountType`:** `percentage`, `fixed`
+
+**Valores permitidos para `status`:**
+| Valor | Etiqueta | Descripción | Color |
+|-------|----------|-------------|-------|
+| `borrador` | Borrador | En proceso de creación | Gris |
+| `enviada` | Enviada | Enviada al cliente | Azul |
+| `aceptada` | Aceptada | Cliente aceptó | Verde |
+| `rechazada` | Rechazada | Cliente rechazó | Rojo |
+
+**Clave localStorage:** `carpinteria_quotations`
+
+**Formato de folio:** `COT-{AÑO}-{NÚMERO}` (ej: COT-2025-001, COT-2025-002)
 
 ---
 

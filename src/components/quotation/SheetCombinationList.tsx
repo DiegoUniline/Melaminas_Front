@@ -115,14 +115,14 @@ const SheetCombinationItem = memo<{
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Acabado (opcional)</Label>
           <Select
-            value={sheet.finishId || ''}
-            onValueChange={(value) => onUpdate(sheet.id, { finishId: value || undefined })}
+            value={sheet.finishId || 'none'}
+            onValueChange={(value) => onUpdate(sheet.id, { finishId: value === 'none' ? undefined : value })}
           >
             <SelectTrigger className="h-10">
               <SelectValue placeholder="Sin acabado" />
             </SelectTrigger>
             <SelectContent className="bg-background border shadow-lg z-50">
-              <SelectItem value="">Sin acabado</SelectItem>
+              <SelectItem value="none">Sin acabado</SelectItem>
               {finishes.map((finish) => (
                 <SelectItem key={finish.id} value={finish.id}>
                   {finish.nombre}

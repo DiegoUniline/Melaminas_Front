@@ -39,7 +39,8 @@ import {
   ArrowLeft,
   Search,
   Settings,
-  X
+  X,
+  ImageIcon
 } from 'lucide-react';
 import { ClientSelector } from '@/components/quotation/ClientSelector';
 import { FurnitureItemForm } from '@/components/quotation/FurnitureItemForm';
@@ -644,6 +645,7 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead className="w-16">Foto</TableHead>
                             <TableHead>Mueble</TableHead>
                             <TableHead>Material</TableHead>
                             <TableHead>Medidas</TableHead>
@@ -657,14 +659,27 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                           {items.map((item) => (
                             <TableRow key={item.id}>
                               <TableCell>
+                                {item.imageUrl ? (
+                                  <img 
+                                    src={item.imageUrl} 
+                                    alt={item.name}
+                                    className="w-12 h-12 object-cover rounded"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                    <ImageIcon className="w-5 h-5 text-muted-foreground/50" />
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>
                                 <p className="font-medium">{item.name}</p>
                                 {item.description && (
                                   <p className="text-sm text-muted-foreground">{item.description}</p>
                                 )}
                               </TableCell>
                               <TableCell>
-                                <p>{item.material}</p>
-                                <p className="text-sm text-muted-foreground">{item.sheetColor}</p>
+                                <p>{item._materialName || item.material}</p>
+                                <p className="text-sm text-muted-foreground">{item._colorName || item.sheetColor}</p>
                               </TableCell>
                               <TableCell>
                                 {item.height && item.width && (

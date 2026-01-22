@@ -225,6 +225,65 @@ export const generateQuotationPDF = (
   // Get final Y position after table
   yPosition = (doc as any).lastAutoTable.finalY + 10;
 
+  // Add images section if any items have images
+  const itemsWithImages = quotation.items.filter(item => item.imageUrl);
+  if (itemsWithImages.length > 0) {
+    // Check if we need a new page for images
+    if (yPosition > doc.internal.pageSize.getHeight() - 100) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...primaryColor);
+    doc.text('IMÁGENES DE REFERENCIA', 20, yPosition);
+    yPosition += 10;
+
+    const imageWidth = 55;
+    const imageHeight = 45;
+    const imagesPerRow = 3;
+    let xPosition = 20;
+    let imagesInRow = 0;
+
+    for (const item of itemsWithImages) {
+      if (!item.imageUrl) continue;
+
+      // Check if we need a new row or page
+      if (imagesInRow >= imagesPerRow) {
+        xPosition = 20;
+        yPosition += imageHeight + 20;
+        imagesInRow = 0;
+      }
+
+      if (yPosition + imageHeight > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage();
+        yPosition = 20;
+        xPosition = 20;
+        imagesInRow = 0;
+      }
+
+      try {
+        // Add image
+        doc.addImage(item.imageUrl, 'JPEG', xPosition, yPosition, imageWidth, imageHeight);
+        
+        // Add item name below image
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...textColor);
+        const truncatedName = item.name.length > 20 ? item.name.substring(0, 17) + '...' : item.name;
+        doc.text(truncatedName, xPosition + imageWidth / 2, yPosition + imageHeight + 5, { align: 'center' });
+      } catch (error) {
+        console.error('Error adding image to PDF:', error);
+      }
+
+      xPosition += imageWidth + 5;
+      imagesInRow++;
+    }
+
+    yPosition += imageHeight + 15;
+  }
+
   // Totals section
   const totalsX = pageWidth - 80;
   

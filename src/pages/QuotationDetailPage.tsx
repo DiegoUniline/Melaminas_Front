@@ -33,7 +33,8 @@ import {
   Edit2,
   Trash2,
   Clock,
-  CreditCard
+  CreditCard,
+  ImageIcon
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { QuotationStatus } from '@/types';
@@ -195,21 +196,39 @@ const QuotationDetailPage: React.FC = () => {
           <CardContent className="space-y-3">
             {quotation.items.map((item, index) => (
               <div key={item.id} className="p-3 bg-muted rounded-lg">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-medium">{item.name}</span>
-                  <span className="text-sm">x{item.quantity}</span>
+                <div className="flex gap-3">
+                  {/* Imagen del mueble */}
+                  {item.imageUrl ? (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-background rounded-lg flex items-center justify-center flex-shrink-0">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                    </div>
+                  )}
+                  
+                  {/* Detalles del mueble */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-medium truncate">{item.name}</span>
+                      <span className="text-sm ml-2">x{item.quantity}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {item._materialName || item.material} • {item._colorName || item.sheetColor} • {item.sheetCount} hojas
+                    </p>
+                    {item.height && item.width && (
+                      <p className="text-sm text-muted-foreground">
+                        {item.height}x{item.width}{item.depth ? `x${item.depth}` : ''} {item.measureUnit}
+                      </p>
+                    )}
+                    <p className="text-sm font-medium mt-1">
+                      ${item.subtotal.toLocaleString('es-MX')}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {item.material} • {item.sheetColor} • {item.sheetCount} hojas
-                </p>
-                {item.height && item.width && (
-                  <p className="text-sm text-muted-foreground">
-                    {item.height}x{item.width}{item.depth ? `x${item.depth}` : ''} {item.measureUnit}
-                  </p>
-                )}
-                <p className="text-sm font-medium mt-1">
-                  ${item.subtotal.toLocaleString('es-MX')}
-                </p>
               </div>
             ))}
           </CardContent>

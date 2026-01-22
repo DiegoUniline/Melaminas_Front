@@ -48,6 +48,19 @@ export type FurnitureCategory =
   | 'oficina'
   | 'otro';
 
+// Combinación de hojas (material + color + cantidad)
+export interface SheetCombination {
+  id: string;
+  materialId: string;
+  colorId: string;
+  finishId?: string;
+  quantity: number;
+  // Display names (populated from catalog)
+  _materialName?: string;
+  _colorName?: string;
+  _finishName?: string;
+}
+
 export interface FurnitureItem {
   id: string;
   category: FurnitureCategory;
@@ -62,10 +75,12 @@ export interface FurnitureItem {
   width?: number;
   depth?: number;
   measureUnit: 'cm' | 'm' | 'pulgadas';
-  // Materiales (IDs para API)
-  material: string;
-  sheetCount: number;
-  sheetColor: string;
+  // Combinaciones de hojas (NUEVO: soporta múltiples combinaciones)
+  sheets: SheetCombination[];
+  // Campos legacy para compatibilidad (se usan si sheets está vacío)
+  material?: string;
+  sheetCount?: number;
+  sheetColor?: string;
   finish?: string;
   // Precios
   unitPrice: number;
@@ -74,7 +89,7 @@ export interface FurnitureItem {
   notes?: string;
   // Imagen del mueble (base64 o URL)
   imageUrl?: string;
-  // Display names (populated from catalog)
+  // Display names (populated from catalog) - legacy
   _materialName?: string;
   _colorName?: string;
   _finishName?: string;

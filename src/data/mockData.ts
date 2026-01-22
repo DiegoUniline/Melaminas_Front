@@ -117,10 +117,9 @@ export const mockFurnitureItems: FurnitureItem[] = [
     width: 300,
     depth: 60,
     measureUnit: 'cm',
-    material: 'Melamina',
-    sheetCount: 8,
-    sheetColor: 'Nogal',
-    finish: 'Mate',
+    sheets: [
+      { id: 'sheet-1', materialId: '1', colorId: '1', quantity: 8, _materialName: 'Melamina', _colorName: 'Nogal' }
+    ],
     unitPrice: 15000,
     quantity: 1,
     subtotal: 15000,
@@ -135,10 +134,9 @@ export const mockFurnitureItems: FurnitureItem[] = [
     width: 400,
     depth: 35,
     measureUnit: 'cm',
-    material: 'MDF',
-    sheetCount: 12,
-    sheetColor: 'Blanco',
-    finish: 'Brillante',
+    sheets: [
+      { id: 'sheet-2', materialId: '2', colorId: '2', finishId: '1', quantity: 12, _materialName: 'MDF', _colorName: 'Blanco', _finishName: 'Brillante' }
+    ],
     unitPrice: 8500,
     quantity: 2,
     subtotal: 17000

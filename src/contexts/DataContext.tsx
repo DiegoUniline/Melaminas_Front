@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { BusinessProfile, Client, Quotation } from '@/types';
+import { BusinessProfile, Client, Quotation, FurnitureItem } from '@/types';
 import api from '@/lib/api';
 import {
   mapApiClient,
@@ -18,6 +18,34 @@ import {
 } from '@/lib/mappers';
 import { useAuth } from './AuthContext';
 import { useCatalogs } from './CatalogContext';
+import { uploadImageToCloudinary } from '@/lib/imageUpload';
+
+// Helper para subir imágenes base64 a Cloudinary antes de enviar a la API
+const processItemImages = async (items: FurnitureItem[]): Promise<FurnitureItem[]> => {
+  const processedItems: FurnitureItem[] = [];
+  
+  for (const item of items) {
+    let processedItem = { ...item };
+    
+    // Si hay una imagen en base64, subirla a Cloudinary
+    if (item.imageUrl && item.imageUrl.startsWith('data:')) {
+      console.log('[processItemImages] Uploading image for item:', item.name);
+      const cloudinaryUrl = await uploadImageToCloudinary(item.imageUrl, `item-${item.id}`);
+      
+      if (cloudinaryUrl) {
+        console.log('[processItemImages] Got Cloudinary URL:', cloudinaryUrl);
+        processedItem.imageUrl = cloudinaryUrl;
+      } else {
+        console.warn('[processItemImages] Failed to upload image, clearing imageUrl');
+        processedItem.imageUrl = ''; // Clear if upload failed to prevent API rejection
+      }
+    }
+    
+    processedItems.push(processedItem);
+  }
+  
+  return processedItems;
+};
 
 interface DataContextType {
   // Estado de carga
@@ -235,7 +263,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     // 3. Agregar items (detalle) - uno por uno
     if (quotationData.items.length > 0) {
-      const itemPromises = quotationData.items.map((item, index) => {
+      // Primero procesar imágenes (subir a Cloudinary si son base64)
+      console.log('[DataContext] Procesando imágenes de items...');
+      const processedItems = await processItemImages(quotationData.items);
+      
+      const itemPromises = processedItems.map((item, index) => {
         const itemData = {
           id: `${quotationId}-${index + 1}`,
           ...mapQuotationItemToApi(item, quotationId)
@@ -278,8 +310,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (quotationData.items.length > 0) {
           console.log('[DataContext] Insertando', quotationData.items.length, 'items...');
           
-          for (let index = 0; index < quotationData.items.length; index++) {
-            const item = quotationData.items[index];
+          // Primero procesar imágenes (subir a Cloudinary si son base64)
+          console.log('[DataContext] Procesando imágenes de items...');
+          const processedItems = await processItemImages(quotationData.items);
+          
+          for (let index = 0; index < processedItems.length; index++) {
+            const item = processedItems[index];
             const itemData = {
               id: `${id}-${index + 1}`,
               ...mapQuotationItemToApi(item, id)

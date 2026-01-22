@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
 
         {/* Quick Action */}
         <Button asChild size="lg" className="w-full h-14 text-base">
-          <Link to="/cotizacion/nueva">
+          <Link to="/cotizaciones/nueva">
             <Plus className="w-5 h-5 mr-2" />
             Nueva Cotización
           </Link>

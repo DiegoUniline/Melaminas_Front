@@ -40,7 +40,8 @@ import {
   Search,
   Settings,
   X,
-  ImageIcon
+  ImageIcon,
+  ChevronRight
 } from 'lucide-react';
 import { ClientSelector } from '@/components/quotation/ClientSelector';
 import { FurnitureItemForm } from '@/components/quotation/FurnitureItemForm';
@@ -1056,7 +1057,7 @@ const MobileQuotationList: React.FC<ListProps> = ({
   );
 };
 
-// Mobile Detail View
+// Mobile Detail View with Step-by-Step Tabs
 const MobileQuotationDetail: React.FC<DetailProps> = ({
   editingQuotationId,
   selectedClient,
@@ -1080,6 +1081,24 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
   setDiscount,
   handleBackToList,
 }) => {
+  const [activeTab, setActiveTab] = React.useState('cliente');
+  
+  // Auto-advance to muebles when client is selected
+  React.useEffect(() => {
+    if (selectedClient && activeTab === 'cliente') {
+      // Small delay to show the selection before advancing
+      const timer = setTimeout(() => setActiveTab('muebles'), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedClient]);
+
+  const getStepStatus = (step: string) => {
+    if (step === 'cliente') return selectedClient ? 'complete' : 'current';
+    if (step === 'muebles') return items.length > 0 ? 'complete' : (selectedClient ? 'current' : 'pending');
+    if (step === 'condiciones') return items.length > 0 ? 'current' : 'pending';
+    return 'pending';
+  };
+
   return (
     <ResponsiveLayout 
       title={editingQuotationId ? 'Editar Cotización' : 'Nueva Cotización'}
@@ -1090,144 +1109,287 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
           Volver
         </Button>
 
-        {/* Cliente */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Cliente
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ClientSelector
-              selectedClient={selectedClient}
-              onSelectClient={setSelectedClient}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Muebles */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Muebles
-              </CardTitle>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  setEditingItem(null);
-                  setFurnitureFormOpen(true);
-                }}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Agregar
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {items.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No hay muebles</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {items.map((item) => (
-                  <div key={item.id} className="p-3 bg-muted rounded-lg">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="flex-1">
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.material} • {item.sheetColor}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">${item.subtotal.toLocaleString('es-MX')}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Button size="sm" variant="ghost" className="h-8" onClick={() => handleEditItem(item)}>
-                        <Edit2 className="w-3 h-3 mr-1" />
-                        Editar
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => handleDeleteItem(item.id)}>
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Eliminar
-                      </Button>
-                    </div>
+        {/* Step Indicator */}
+        <div className="flex items-center justify-between mb-4 px-2">
+          {[
+            { id: 'cliente', label: 'Cliente', icon: User, num: 1 },
+            { id: 'muebles', label: 'Muebles', icon: Package, num: 2 },
+            { id: 'condiciones', label: 'Condiciones', icon: Settings, num: 3 },
+          ].map((step, idx) => {
+            const status = getStepStatus(step.id);
+            const isActive = activeTab === step.id;
+            const StepIcon = step.icon;
+            
+            return (
+              <React.Fragment key={step.id}>
+                <button
+                  onClick={() => setActiveTab(step.id)}
+                  className={`flex flex-col items-center gap-1 transition-all ${
+                    isActive ? 'scale-105' : ''
+                  }`}
+                >
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center transition-all
+                    ${status === 'complete' ? 'bg-success text-success-foreground' : ''}
+                    ${isActive && status !== 'complete' ? 'bg-primary text-primary-foreground ring-2 ring-primary/30' : ''}
+                    ${!isActive && status === 'pending' ? 'bg-muted text-muted-foreground' : ''}
+                    ${!isActive && status === 'current' ? 'bg-primary/20 text-primary' : ''}
+                  `}>
+                    {status === 'complete' ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : (
+                      <StepIcon className="w-5 h-5" />
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <span className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {step.label}
+                  </span>
+                </button>
+                {idx < 2 && (
+                  <div className={`flex-1 h-0.5 mx-2 ${
+                    getStepStatus(['cliente', 'muebles', 'condiciones'][idx + 1]) !== 'pending' 
+                      ? 'bg-success' 
+                      : 'bg-muted'
+                  }`} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
 
-        {/* Condiciones */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Condiciones</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Días entrega</Label>
-                <Input name="deliveryDays" type="number" value={conditions.deliveryDays} onChange={handleConditionChange} />
-              </div>
-              <div className="space-y-2">
-                <Label>Vigencia</Label>
-                <Input name="validityDays" type="number" value={conditions.validityDays} onChange={handleConditionChange} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Forma de pago</Label>
-              <Select value={conditions.paymentTerms} onValueChange={(value) => handleConditionChange({ target: { name: 'paymentTerms', value } } as any)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="50% anticipo, 50% contra entrega">50% - 50%</SelectItem>
-                  <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                  <SelectItem value="Pago contra entrega">Contra entrega</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total */}
-        <Card className="bg-primary text-primary-foreground">
-          <CardContent className="py-4">
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-sm opacity-80">
-                <span>Subtotal</span>
-                <span>${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-              </div>
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-sm opacity-80">
-                  <span>Descuento</span>
-                  <span>-${discountAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+        {/* Tab Content */}
+        {activeTab === 'cliente' && (
+          <Card className="border-2 border-primary/20">
+            <CardHeader className="pb-3 bg-primary/5">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">1</div>
+                Selecciona un Cliente
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Elige un cliente existente o crea uno nuevo
+              </p>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ClientSelector
+                selectedClient={selectedClient}
+                onSelectClient={setSelectedClient}
+              />
+              {selectedClient && (
+                <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+                  <div className="flex items-center gap-2 text-success mb-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="font-medium text-sm">Cliente seleccionado</span>
+                  </div>
+                  <p className="font-medium">{selectedClient.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedClient.phone}</p>
+                  <Button 
+                    className="w-full mt-3" 
+                    onClick={() => setActiveTab('muebles')}
+                  >
+                    Continuar a Muebles
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
               )}
-              <div className="flex justify-between text-2xl font-bold pt-2 border-t border-primary-foreground/20">
-                <span>Total</span>
-                <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'muebles' && (
+          <Card className="border-2 border-primary/20">
+            <CardHeader className="pb-3 bg-primary/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">2</div>
+                    Agrega Muebles
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Añade los productos a cotizar
+                  </p>
+                </div>
+                <Button 
+                  size="sm"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setFurnitureFormOpen(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Agregar
+                </Button>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="secondary" onClick={() => handleSave('borrador')}>
-                <Save className="w-4 h-4 mr-1" />
-                Guardar
-              </Button>
-              <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" onClick={handleGeneratePDF}>
-                <FileText className="w-4 h-4 mr-1" />
-                PDF
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {!selectedClient && (
+                <div className="text-center py-6 bg-muted/50 rounded-lg">
+                  <User className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-2">Primero selecciona un cliente</p>
+                  <Button variant="outline" size="sm" onClick={() => setActiveTab('cliente')}>
+                    Ir a Cliente
+                  </Button>
+                </div>
+              )}
+              {selectedClient && items.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                  <Package className="w-12 h-12 mx-auto mb-2 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground mb-3">No hay muebles agregados</p>
+                  <Button
+                    onClick={() => {
+                      setEditingItem(null);
+                      setFurnitureFormOpen(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Primer Mueble
+                  </Button>
+                </div>
+              )}
+              {items.length > 0 && (
+                <>
+                  <div className="space-y-3 mb-4">
+                    {items.map((item) => (
+                      <div key={item.id} className="p-3 bg-muted rounded-lg">
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex gap-3 flex-1">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded object-cover" />
+                            ) : (
+                              <div className="w-12 h-12 rounded bg-background flex items-center justify-center">
+                                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {item._materialName || item.material} • {item._colorName || item.sheetColor}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">${item.subtotal.toLocaleString('es-MX')}</p>
+                            <p className="text-xs text-muted-foreground">x{item.quantity}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <Button size="sm" variant="ghost" className="h-8" onClick={() => handleEditItem(item)}>
+                            <Edit2 className="w-3 h-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => handleDeleteItem(item.id)}>
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setEditingItem(null);
+                        setFurnitureFormOpen(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Otro Mueble
+                    </Button>
+                    <Button className="flex-1" onClick={() => setActiveTab('condiciones')}>
+                      Continuar
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'condiciones' && (
+          <>
+            <Card className="border-2 border-primary/20">
+              <CardHeader className="pb-3 bg-primary/5">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">3</div>
+                  Condiciones
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Define los términos de la cotización
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Días entrega</Label>
+                    <Input name="deliveryDays" type="number" value={conditions.deliveryDays} onChange={handleConditionChange} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Vigencia</Label>
+                    <Input name="validityDays" type="number" value={conditions.validityDays} onChange={handleConditionChange} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Forma de pago</Label>
+                  <Select value={conditions.paymentTerms} onValueChange={(value) => handleConditionChange({ target: { name: 'paymentTerms', value } } as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
+                      <SelectItem value="100% anticipo">100% anticipo</SelectItem>
+                      <SelectItem value="40% anticipo, 30% a mitad, 30% contra entrega">40% - 30% - 30%</SelectItem>
+                      <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Observaciones</Label>
+                  <Textarea 
+                    name="observations" 
+                    value={conditions.observations} 
+                    onChange={handleConditionChange}
+                    placeholder="Notas adicionales..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Summary */}
+            <Card className="bg-primary text-primary-foreground">
+              <CardContent className="py-4">
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm opacity-80">
+                    <span>Subtotal ({items.length} muebles)</span>
+                    <span>${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-sm opacity-80">
+                      <span>Descuento</span>
+                      <span>-${discountAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-2xl font-bold pt-2 border-t border-primary-foreground/20">
+                    <span>Total</span>
+                    <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button variant="secondary" onClick={() => handleSave('borrador')}>
+                    <Save className="w-4 h-4 mr-1" />
+                    Guardar
+                  </Button>
+                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" onClick={handleGeneratePDF}>
+                    <FileText className="w-4 h-4 mr-1" />
+                    PDF
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <FurnitureItemForm

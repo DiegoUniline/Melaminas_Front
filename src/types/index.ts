@@ -72,6 +72,8 @@ export interface FurnitureItem {
   quantity: number;
   subtotal: number;
   notes?: string;
+  // Imagen del mueble (base64 o URL)
+  imageUrl?: string;
   // Display names (populated from catalog)
   _materialName?: string;
   _colorName?: string;

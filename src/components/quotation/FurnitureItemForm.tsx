@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,10 @@ import {
   FileText,
   X,
   Check,
-  Layers
+  Layers,
+  Camera,
+  ImageIcon,
+  Trash2
 } from 'lucide-react';
 import { FurnitureItem, FurnitureCategory } from '@/types';
 import { toast } from 'sonner';
@@ -57,6 +60,7 @@ interface FormData {
   unitPrice: string;
   quantity: string;
   notes: string;
+  imageUrl: string;
 }
 
 const initialFormState: FormData = {
@@ -74,6 +78,7 @@ const initialFormState: FormData = {
   unitPrice: '',
   quantity: '1',
   notes: '',
+  imageUrl: '',
 };
 
 // Form content component - defined outside to prevent re-creation
@@ -81,6 +86,7 @@ interface FormContentProps {
   formData: FormData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: keyof FormData, value: string) => void;
+  onImageChange: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
   isEdit: boolean;
@@ -95,6 +101,7 @@ const FormContentComponent = memo<FormContentProps>(({
   formData,
   onInputChange,
   onSelectChange,
+  onImageChange,
   onSave,
   onCancel,
   isEdit,
@@ -104,10 +111,43 @@ const FormContentComponent = memo<FormContentProps>(({
   colors,
   finishes,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const calculateSubtotal = () => {
     const price = parseFloat(formData.unitPrice) || 0;
     const qty = parseInt(formData.quantity) || 1;
     return price * qty;
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar 5MB');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      onImageChange(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    onImageChange('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -421,7 +461,54 @@ const FormContentComponent = memo<FormContentProps>(({
         </Card>
       </div>
 
-      {/* Section 5: Notas */}
+      {/* Section 5: Foto del Mueble */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-primary">
+          <Camera className="w-5 h-5" />
+          <h3 className="font-semibold text-base">Foto del Mueble</h3>
+        </div>
+        
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageSelect}
+          className="hidden"
+        />
+        
+        {formData.imageUrl ? (
+          <div className="relative">
+            <img 
+              src={formData.imageUrl} 
+              alt="Vista previa del mueble"
+              className="w-full h-48 object-cover rounded-lg border"
+            />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={handleRemoveImage}
+              type="button"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full h-32 border-dashed flex flex-col gap-2"
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            <ImageIcon className="w-8 h-8 text-muted-foreground" />
+            <span className="text-muted-foreground">Subir foto del mueble</span>
+          </Button>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Section 6: Notas */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <FileText className="w-5 h-5" />
@@ -524,6 +611,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
         unitPrice: editItem.unitPrice.toString(),
         quantity: editItem.quantity.toString(),
         notes: editItem.notes || '',
+        imageUrl: editItem.imageUrl || '',
       });
     } else if (!open) {
       setFormData(initialFormState);
@@ -597,6 +685,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
       quantity: parseInt(formData.quantity) || 1,
       subtotal: calculateSubtotal(),
       notes: formData.notes.trim() || undefined,
+      imageUrl: formData.imageUrl || undefined,
       // Store display names for UI
       _materialName: materialName,
       _colorName: colorName,
@@ -613,10 +702,15 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     onOpenChange(false);
   }, [onOpenChange]);
 
+  const handleImageChange = useCallback((imageUrl: string) => {
+    setFormData(prev => ({ ...prev, imageUrl }));
+  }, []);
+
   const formContentProps = useMemo<FormContentProps>(() => ({
     formData,
     onInputChange: handleInputChange,
     onSelectChange: handleSelectChange,
+    onImageChange: handleImageChange,
     onSave: handleSave,
     onCancel: handleCancel,
     isEdit: !!editItem,
@@ -625,7 +719,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     materials,
     colors,
     finishes,
-  }), [formData, handleInputChange, handleSelectChange, handleSave, handleCancel, editItem, categories, products, materials, colors, finishes]);
+  }), [formData, handleInputChange, handleSelectChange, handleImageChange, handleSave, handleCancel, editItem, categories, products, materials, colors, finishes]);
 
   // Mobile: Use Sheet from bottom
   if (isMobile) {

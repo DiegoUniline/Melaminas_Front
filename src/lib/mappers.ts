@@ -218,6 +218,7 @@ export interface ApiQuotationItem {
   cantidad: number;
   subtotal?: number;
   notas?: string;
+  imagen_url?: string; // URL o base64 de la imagen del mueble
 }
 
 export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem => ({
@@ -236,7 +237,8 @@ export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem =>
   unitPrice: Number(apiItem.precio_unitario),
   quantity: Number(apiItem.cantidad),
   subtotal: apiItem.subtotal ? Number(apiItem.subtotal) : Number(apiItem.precio_unitario) * Number(apiItem.cantidad),
-  notes: apiItem.notas
+  notes: apiItem.notas,
+  imageUrl: apiItem.imagen_url
 });
 
 export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string): ApiQuotationItem => ({
@@ -256,7 +258,8 @@ export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string):
   precio_unitario: item.unitPrice,
   cantidad: item.quantity,
   subtotal: item.subtotal || item.unitPrice * item.quantity,
-  notas: item.notes || ''
+  notas: item.notes || '',
+  imagen_url: item.imageUrl || ''
 });
 
 // === COTIZACIÓN ===

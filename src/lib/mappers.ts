@@ -115,11 +115,15 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   if (client.id !== undefined) mapped.id = client.id;
   if (client.name !== undefined) mapped.nombre = client.name;
   if (client.phone !== undefined) mapped.telefono = client.phone;
-  if (client.whatsapp !== undefined) mapped.whatsapp = client.whatsapp || '';
-  if (client.email !== undefined) mapped.correo = client.email || '';
   if (client.address !== undefined) mapped.direccion = client.address;
-  if (client.city !== undefined) mapped.ciudad = client.city || '';
-  if (client.notes !== undefined) mapped.notas = client.notes || '';
+  
+  // WhatsApp: siempre incluir, usar teléfono como fallback (API lo requiere)
+  mapped.whatsapp = client.whatsapp || client.phone || '';
+  
+  // Campos opcionales pero siempre incluirlos para evitar errores de API
+  mapped.correo = client.email || '';
+  mapped.ciudad = client.city || '';
+  mapped.notas = client.notes || '';
   if (createdBy) mapped.creado_por = createdBy;
   
   // Siempre incluir fecha de actualización en formato ISO

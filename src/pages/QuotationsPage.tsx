@@ -142,12 +142,57 @@ const QuotationsPage: React.FC = () => {
     setConditions(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddItem = (item: FurnitureItem) => {
+  const handleAddItem = async (item: FurnitureItem) => {
+    // Actualizar estado local primero
+    let updatedItems: FurnitureItem[];
     if (editingItem) {
-      setItems(prev => prev.map(i => i.id === item.id ? item : i));
+      updatedItems = items.map(i => i.id === item.id ? item : i);
+      setItems(updatedItems);
       setEditingItem(null);
     } else {
-      setItems(prev => [...prev, item]);
+      updatedItems = [...items, item];
+      setItems(updatedItems);
+    }
+
+    // Guardar a la API inmediatamente
+    try {
+      if (editingQuotationId) {
+        // Cotización existente - actualizar items
+        console.log('[QuotationsPage] Guardando items a cotización existente:', editingQuotationId);
+        const success = await updateQuotation(editingQuotationId, { items: updatedItems });
+        if (success) {
+          toast.success(editingItem ? 'Mueble actualizado' : 'Mueble agregado y guardado');
+        }
+      } else if (selectedClient) {
+        // Cotización nueva - crearla primero con los items
+        console.log('[QuotationsPage] Creando nueva cotización con items...');
+        const quotationData = {
+          clientId: selectedClient.id,
+          client: selectedClient,
+          items: updatedItems,
+          subtotal: updatedItems.reduce((sum, i) => sum + i.subtotal, 0),
+          total: updatedItems.reduce((sum, i) => sum + i.subtotal, 0),
+          deliveryDays: parseInt(conditions.deliveryDays) || 15,
+          validityDays: parseInt(conditions.validityDays) || 30,
+          paymentTerms: conditions.paymentTerms,
+          advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
+          observations: conditions.observations || undefined,
+          status: 'borrador' as QuotationStatus,
+        };
+        
+        const newQuotation = await addQuotation(quotationData);
+        if (newQuotation) {
+          setEditingQuotationId(newQuotation.id);
+          navigate(`/cotizaciones/${newQuotation.id}`, { replace: true });
+          toast.success(`Cotización ${newQuotation.folio} creada con mueble`);
+        }
+      } else {
+        // No hay cliente seleccionado - solo guardar localmente
+        toast.success(editingItem ? 'Mueble actualizado' : 'Mueble agregado (selecciona cliente para guardar)');
+      }
+    } catch (error) {
+      console.error('[QuotationsPage] Error al guardar item:', error);
+      toast.error('Error al guardar mueble');
     }
   };
 
@@ -156,9 +201,22 @@ const QuotationsPage: React.FC = () => {
     setFurnitureFormOpen(true);
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    setItems(prev => prev.filter(i => i.id !== itemId));
-    toast.success('Mueble eliminado');
+  const handleDeleteItem = async (itemId: string) => {
+    const updatedItems = items.filter(i => i.id !== itemId);
+    setItems(updatedItems);
+    
+    // Si hay cotización existente, actualizar en API
+    if (editingQuotationId) {
+      try {
+        await updateQuotation(editingQuotationId, { items: updatedItems });
+        toast.success('Mueble eliminado y guardado');
+      } catch (error) {
+        console.error('[QuotationsPage] Error al eliminar item:', error);
+        toast.error('Error al eliminar mueble');
+      }
+    } else {
+      toast.success('Mueble eliminado');
+    }
   };
 
   // Calculations

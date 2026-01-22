@@ -232,14 +232,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const quotationId = response.data?.id || newId;
     
-    // 3. Agregar items (detalle)
+    // 3. Agregar items (detalle) - uno por uno
     if (quotationData.items.length > 0) {
-      const itemsApiData = quotationData.items.map((item, index) => ({
-        id: `${quotationId}-${index + 1}`,
-        ...mapQuotationItemToApi(item, quotationId)
-      }));
+      const itemPromises = quotationData.items.map((item, index) => {
+        const itemData = {
+          id: `${quotationId}-${index + 1}`,
+          ...mapQuotationItemToApi(item, quotationId)
+        };
+        console.log('[DataContext] Guardando item:', itemData);
+        return api.post('/cotizacion-detalle', itemData);
+      });
       
-      await api.post('/cotizacion-detalle/multiple', itemsApiData);
+      const results = await Promise.all(itemPromises);
+      console.log('[DataContext] Resultados de items:', results);
     }
     
     // 4. Crear objeto completo
@@ -262,13 +267,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Eliminar items existentes
       await api.del(`/cotizacion-detalle/cotizacion/${id}`);
       
-      // Agregar nuevos items
-      const itemsApiData = quotationData.items.map((item, index) => ({
-        id: `${id}-${index + 1}`,
-        ...mapQuotationItemToApi(item, id)
-      }));
+      // Agregar nuevos items - uno por uno
+      const itemPromises = quotationData.items.map((item, index) => {
+        const itemData = {
+          id: `${id}-${index + 1}`,
+          ...mapQuotationItemToApi(item, id)
+        };
+        console.log('[DataContext] Actualizando item:', itemData);
+        return api.post('/cotizacion-detalle', itemData);
+      });
       
-      await api.post('/cotizacion-detalle/multiple', itemsApiData);
+      const results = await Promise.all(itemPromises);
+      console.log('[DataContext] Resultados de actualización:', results);
     }
     
     // Actualizar encabezado (excluyendo items, client, y fechas)

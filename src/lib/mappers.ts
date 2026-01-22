@@ -228,27 +228,93 @@ const safeParseInt = (value: string | undefined | null, defaultValue: number = 0
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
-export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem => ({
-  id: apiItem.id,
-  category: 'otro' as FurnitureCategory,
-  name: apiItem.nombre,
-  description: apiItem.descripcion,
-  height: apiItem.alto,
-  width: apiItem.ancho,
-  depth: apiItem.profundidad,
-  measureUnit: 'cm',
-  material: String(apiItem.id_material || ''),
-  sheetCount: apiItem.cantidad_hojas || 0,
-  sheetColor: String(apiItem.id_color || ''),
-  finish: apiItem.id_acabado ? String(apiItem.id_acabado) : undefined,
-  unitPrice: Number(apiItem.precio_unitario),
-  quantity: Number(apiItem.cantidad),
-  subtotal: apiItem.subtotal ? Number(apiItem.subtotal) : Number(apiItem.precio_unitario) * Number(apiItem.cantidad),
-  notes: apiItem.notas,
-  imageUrl: apiItem.Imagen
-});
+// Helper para serializar sheets a JSON para notas
+const serializeSheetsToNotes = (sheets: FurnitureItem['sheets'], existingNotes?: string): string => {
+  if (!sheets || sheets.length === 0) return existingNotes || '';
+  const sheetsJson = JSON.stringify(sheets);
+  const marker = '<!--SHEETS:';
+  const endMarker = ':SHEETS-->';
+  const sheetsData = `${marker}${sheetsJson}${endMarker}`;
+  
+  // Si ya hay notas, combinarlas
+  if (existingNotes) {
+    // Remover cualquier marcador existente primero
+    const cleanNotes = existingNotes.replace(/<!--SHEETS:.*?:SHEETS-->/gs, '').trim();
+    return cleanNotes ? `${cleanNotes}\n${sheetsData}` : sheetsData;
+  }
+  return sheetsData;
+};
+
+// Helper para deserializar sheets desde notas
+const deserializeSheetsFromNotes = (notas: string): { sheets: FurnitureItem['sheets']; cleanNotes: string } => {
+  const marker = '<!--SHEETS:';
+  const endMarker = ':SHEETS-->';
+  const startIdx = notas.indexOf(marker);
+  const endIdx = notas.indexOf(endMarker);
+  
+  if (startIdx === -1 || endIdx === -1) {
+    return { sheets: [], cleanNotes: notas };
+  }
+  
+  try {
+    const jsonStr = notas.substring(startIdx + marker.length, endIdx);
+    const sheets = JSON.parse(jsonStr);
+    const cleanNotes = notas.replace(/<!--SHEETS:.*?:SHEETS-->/gs, '').trim();
+    return { sheets, cleanNotes };
+  } catch {
+    return { sheets: [], cleanNotes: notas };
+  }
+};
+
+export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem => {
+  // Intentar extraer sheets desde notas
+  const { sheets: parsedSheets, cleanNotes } = deserializeSheetsFromNotes(apiItem.notas || '');
+  
+  // Si no hay sheets serializados, crear uno desde los campos legacy
+  const sheets = parsedSheets.length > 0 ? parsedSheets : [{
+    id: `sheet-${apiItem.id}`,
+    materialId: String(apiItem.id_material || ''),
+    colorId: String(apiItem.id_color || ''),
+    finishId: apiItem.id_acabado ? String(apiItem.id_acabado) : undefined,
+    quantity: apiItem.cantidad_hojas || 1,
+  }];
+
+  return {
+    id: apiItem.id,
+    category: 'otro' as FurnitureCategory,
+    name: apiItem.nombre,
+    description: apiItem.descripcion,
+    height: apiItem.alto,
+    width: apiItem.ancho,
+    depth: apiItem.profundidad,
+    measureUnit: 'cm',
+    sheets,
+    // Legacy fields for backward compatibility
+    material: String(apiItem.id_material || ''),
+    sheetCount: apiItem.cantidad_hojas || 0,
+    sheetColor: String(apiItem.id_color || ''),
+    finish: apiItem.id_acabado ? String(apiItem.id_acabado) : undefined,
+    unitPrice: Number(apiItem.precio_unitario),
+    quantity: Number(apiItem.cantidad),
+    subtotal: apiItem.subtotal ? Number(apiItem.subtotal) : Number(apiItem.precio_unitario) * Number(apiItem.cantidad),
+    notes: cleanNotes,
+    imageUrl: apiItem.Imagen
+  };
+};
 
 export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string): ApiQuotationItem => {
+  // Usar el primer sheet como valores principales (para compatibilidad API)
+  const primarySheet = item.sheets?.[0];
+  const materialId = primarySheet?.materialId || item.material || '';
+  const colorId = primarySheet?.colorId || item.sheetColor || '';
+  const finishId = primarySheet?.finishId || item.finish;
+  const totalSheets = item.sheets?.reduce((sum, s) => sum + (s.quantity || 0), 0) || item.sheetCount || 1;
+  
+  // Serializar todos los sheets en notas si hay múltiples
+  const notesWithSheets = item.sheets && item.sheets.length > 1 
+    ? serializeSheetsToNotes(item.sheets, item.notes)
+    : item.notes || '';
+
   const mapped: ApiQuotationItem = {
     id: item.id,
     id_cotizacion: quotationId,
@@ -259,15 +325,15 @@ export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string):
     alto: item.height || 0,
     ancho: item.width || 0,
     profundidad: item.depth || 0,
-    id_unidad_medida: 1, // 1 = centímetros por defecto
-    id_material: safeParseInt(item.material, 1),
-    cantidad_hojas: item.sheetCount || 1,
-    id_color: safeParseInt(item.sheetColor, 1),
-    id_acabado: safeParseInt(item.finish, 1),
+    id_unidad_medida: 1,
+    id_material: safeParseInt(materialId, 1),
+    cantidad_hojas: totalSheets,
+    id_color: safeParseInt(colorId, 1),
+    id_acabado: safeParseInt(finishId, 1),
     precio_unitario: item.unitPrice || 0,
     cantidad: item.quantity || 1,
     subtotal: item.subtotal || (item.unitPrice || 0) * (item.quantity || 1),
-    notas: item.notes || '',
+    notas: notesWithSheets,
     Imagen: item.imageUrl || ''
   };
   

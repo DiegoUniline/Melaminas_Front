@@ -27,16 +27,16 @@ import {
   FileText,
   X,
   Check,
-  Layers,
   Camera,
   ImageIcon,
   Trash2
 } from 'lucide-react';
-import { FurnitureItem, FurnitureCategory } from '@/types';
+import { FurnitureItem, FurnitureCategory, SheetCombination } from '@/types';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useCatalogs } from '@/contexts/CatalogContext';
+import { SheetCombinationList } from './SheetCombinationList';
 
 interface FurnitureItemFormProps {
   open: boolean;
@@ -53,15 +53,19 @@ interface FormData {
   width: string;
   depth: string;
   measureUnit: 'cm' | 'm' | 'pulgadas';
-  materialId: string;
-  sheetCount: string;
-  colorId: string;
-  finishId: string;
+  sheets: SheetCombination[];
   unitPrice: string;
   quantity: string;
   notes: string;
   imageUrl: string;
 }
+
+const createDefaultSheet = (): SheetCombination => ({
+  id: `sheet-${Date.now()}`,
+  materialId: '',
+  colorId: '',
+  quantity: 1,
+});
 
 const initialFormState: FormData = {
   categoryId: '',
@@ -71,10 +75,7 @@ const initialFormState: FormData = {
   width: '',
   depth: '',
   measureUnit: 'cm',
-  materialId: '',
-  sheetCount: '1',
-  colorId: '',
-  finishId: '',
+  sheets: [createDefaultSheet()],
   unitPrice: '',
   quantity: '1',
   notes: '',
@@ -86,6 +87,7 @@ interface FormContentProps {
   formData: FormData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: keyof FormData, value: string) => void;
+  onSheetsChange: (sheets: SheetCombination[]) => void;
   onImageChange: (imageUrl: string) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -93,7 +95,7 @@ interface FormContentProps {
   categories: { id: string; nombre: string }[];
   products: { id: string; nombre: string }[];
   materials: { id: string; nombre: string }[];
-  colors: { id: string; nombre: string }[];
+  getColorsByMaterial: (materialId?: string) => { id: string; nombre: string }[];
   finishes: { id: string; nombre: string }[];
 }
 
@@ -101,6 +103,7 @@ const FormContentComponent = memo<FormContentProps>(({
   formData,
   onInputChange,
   onSelectChange,
+  onSheetsChange,
   onImageChange,
   onSave,
   onCancel,
@@ -108,7 +111,7 @@ const FormContentComponent = memo<FormContentProps>(({
   categories,
   products,
   materials,
-  colors,
+  getColorsByMaterial,
   finishes,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -309,96 +312,20 @@ const FormContentComponent = memo<FormContentProps>(({
 
       <Separator />
 
-      {/* Section 3: Material y Color */}
+      {/* Section 3: Hojas / Materiales (NUEVO: Lista dinámica) */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <Palette className="w-5 h-5" />
-          <h3 className="font-semibold text-base">Material y Acabado</h3>
+          <h3 className="font-semibold text-base">Hojas y Materiales</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              Material <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={formData.materialId}
-              onValueChange={(value) => {
-                onSelectChange('materialId', value);
-                onSelectChange('colorId', ''); // Reset color when material changes
-              }}
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Selecciona material" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                {materials.map((mat) => (
-                  <SelectItem key={mat.id} value={mat.id}>
-                    {mat.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              Color <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={formData.colorId}
-              onValueChange={(value) => onSelectChange('colorId', value)}
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Selecciona color" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                {colors.map((color) => (
-                  <SelectItem key={color.id} value={color.id}>
-                    {color.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              Cantidad de hojas
-            </Label>
-            <Input
-              name="sheetCount"
-              type="number"
-              inputMode="numeric"
-              value={formData.sheetCount}
-              onChange={onInputChange}
-              min="1"
-              className="h-11"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Acabado</Label>
-            <Select
-              value={formData.finishId}
-              onValueChange={(value) => onSelectChange('finishId', value)}
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Selecciona acabado" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                {finishes.map((finish) => (
-                  <SelectItem key={finish.id} value={finish.id}>
-                    {finish.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <SheetCombinationList
+          sheets={formData.sheets}
+          onChange={onSheetsChange}
+          materials={materials}
+          getColorsByMaterial={getColorsByMaterial}
+          finishes={finishes}
+        />
       </div>
 
       <Separator />
@@ -577,11 +504,6 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     if (!formData.categoryId) return [];
     return getProductsByCategory(formData.categoryId);
   }, [formData.categoryId, catalogs]);
-  
-  // Colors filtered by selected material
-  const colors = useMemo(() => {
-    return getActiveColors(formData.materialId || undefined);
-  }, [formData.materialId, catalogs]);
 
   // Find ID by name helper (for mapping names back to IDs)
   const findIdByName = (list: { id: string; nombre: string }[], name: string): string => {
@@ -596,24 +518,55 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
 
   useEffect(() => {
     if (editItem && open) {
-      // Check if values are already IDs or need to be looked up by name
-      // material, sheetColor, finish from API are IDs; from local creation might be IDs too
-      const materialId = isValidId(materials, editItem.material) 
-        ? editItem.material 
-        : findIdByName(materials, editItem.material);
-      
-      const allColors = getActiveColors();
-      const colorId = isValidId(allColors, editItem.sheetColor) 
-        ? editItem.sheetColor 
-        : findIdByName(allColors, editItem.sheetColor);
-      
-      const finishId = editItem.finish 
-        ? (isValidId(finishes, editItem.finish) ? editItem.finish : findIdByName(finishes, editItem.finish))
-        : '';
-
       const categoryId = editItem.categoryId 
         ? editItem.categoryId 
         : (editItem.category === 'otro' ? '7' : findIdByName(categories, editItem.category) || '');
+      
+      // Convert editItem.sheets to form sheets, or create from legacy fields
+      let formSheets: SheetCombination[] = [];
+      
+      if (editItem.sheets && editItem.sheets.length > 0) {
+        // Use existing sheets, ensuring IDs are valid
+        formSheets = editItem.sheets.map(sheet => {
+          const allColors = getActiveColors();
+          return {
+            ...sheet,
+            materialId: isValidId(materials, sheet.materialId) 
+              ? sheet.materialId 
+              : findIdByName(materials, sheet.materialId),
+            colorId: isValidId(allColors, sheet.colorId) 
+              ? sheet.colorId 
+              : findIdByName(allColors, sheet.colorId),
+            finishId: sheet.finishId 
+              ? (isValidId(finishes, sheet.finishId) ? sheet.finishId : findIdByName(finishes, sheet.finishId))
+              : undefined,
+          };
+        });
+      } else if (editItem.material) {
+        // Convert legacy single material to sheets array
+        const allColors = getActiveColors();
+        const materialId = isValidId(materials, editItem.material) 
+          ? editItem.material 
+          : findIdByName(materials, editItem.material);
+        const colorId = editItem.sheetColor 
+          ? (isValidId(allColors, editItem.sheetColor) ? editItem.sheetColor : findIdByName(allColors, editItem.sheetColor))
+          : '';
+        const finishId = editItem.finish 
+          ? (isValidId(finishes, editItem.finish) ? editItem.finish : findIdByName(finishes, editItem.finish))
+          : undefined;
+        
+        formSheets = [{
+          id: `sheet-${editItem.id}`,
+          materialId,
+          colorId,
+          finishId,
+          quantity: editItem.sheetCount || 1,
+        }];
+      }
+      
+      if (formSheets.length === 0) {
+        formSheets = [createDefaultSheet()];
+      }
       
       setFormData({
         categoryId,
@@ -623,10 +576,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
         width: editItem.width?.toString() || '',
         depth: editItem.depth?.toString() || '',
         measureUnit: editItem.measureUnit,
-        materialId,
-        sheetCount: editItem.sheetCount.toString(),
-        colorId,
-        finishId,
+        sheets: formSheets,
         unitPrice: editItem.unitPrice.toString(),
         quantity: editItem.quantity.toString(),
         notes: editItem.notes || '',
@@ -646,6 +596,10 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   }, []);
 
+  const handleSheetsChange = useCallback((sheets: SheetCombination[]) => {
+    setFormData(prev => ({ ...prev, sheets }));
+  }, []);
+
   const calculateSubtotal = useCallback(() => {
     const price = parseFloat(formData.unitPrice) || 0;
     const qty = parseInt(formData.quantity) || 1;
@@ -661,23 +615,26 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
       toast.error('El nombre del mueble es obligatorio');
       return;
     }
-    if (!formData.materialId) {
-      toast.error('Selecciona un material');
+    
+    // Validate at least one complete sheet
+    const validSheets = formData.sheets.filter(s => s.materialId && s.colorId);
+    if (validSheets.length === 0) {
+      toast.error('Agrega al menos una hoja con material y color');
       return;
     }
-    if (!formData.colorId) {
-      toast.error('Selecciona el color');
-      return;
-    }
+    
     if (!formData.unitPrice || parseFloat(formData.unitPrice) <= 0) {
       toast.error('Ingresa un precio válido');
       return;
     }
 
-    // Get names from IDs for the item
-    const materialName = getMaterialName(formData.materialId);
-    const colorName = getColorName(formData.colorId);
-    const finishName = formData.finishId ? getFinishName(formData.finishId) : undefined;
+    // Enrich sheets with display names
+    const enrichedSheets: SheetCombination[] = validSheets.map(sheet => ({
+      ...sheet,
+      _materialName: getMaterialName(sheet.materialId),
+      _colorName: getColorName(sheet.colorId),
+      _finishName: sheet.finishId ? getFinishName(sheet.finishId) : undefined,
+    }));
 
     // Find product ID by name
     const findProductIdByName = (name: string): string | undefined => {
@@ -687,35 +644,37 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
 
     const item: FurnitureItem = {
       id: editItem?.id || Date.now().toString(),
-      category: 'otro' as FurnitureCategory, // Will be mapped by API using categoryId
-      categoryId: formData.categoryId, // Store category ID for API
-      productId: findProductIdByName(formData.name), // Store product ID for API
+      category: 'otro' as FurnitureCategory,
+      categoryId: formData.categoryId,
+      productId: findProductIdByName(formData.name),
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       height: formData.height ? parseFloat(formData.height) : undefined,
       width: formData.width ? parseFloat(formData.width) : undefined,
       depth: formData.depth ? parseFloat(formData.depth) : undefined,
       measureUnit: formData.measureUnit,
-      material: formData.materialId, // Store ID for API
-      sheetCount: parseInt(formData.sheetCount) || 1,
-      sheetColor: formData.colorId, // Store ID for API
-      finish: formData.finishId || undefined, // Store ID for API
+      sheets: enrichedSheets,
+      // Legacy fields for backward compatibility (use first sheet)
+      material: enrichedSheets[0]?.materialId,
+      sheetCount: enrichedSheets.reduce((sum, s) => sum + s.quantity, 0),
+      sheetColor: enrichedSheets[0]?.colorId,
+      finish: enrichedSheets[0]?.finishId,
       unitPrice: parseFloat(formData.unitPrice),
       quantity: parseInt(formData.quantity) || 1,
       subtotal: calculateSubtotal(),
       notes: formData.notes.trim() || undefined,
       imageUrl: formData.imageUrl || undefined,
-      // Store display names for UI
-      _materialName: materialName,
-      _colorName: colorName,
-      _finishName: finishName,
+      // Legacy display names
+      _materialName: enrichedSheets[0]?._materialName,
+      _colorName: enrichedSheets[0]?._colorName,
+      _finishName: enrichedSheets[0]?._finishName,
     };
 
     onSave(item);
     onOpenChange(false);
     setFormData(initialFormState);
     toast.success(editItem ? 'Mueble actualizado' : 'Mueble agregado');
-  }, [formData, editItem, onSave, onOpenChange, getMaterialName, getColorName, getFinishName, calculateSubtotal]);
+  }, [formData, editItem, onSave, onOpenChange, getMaterialName, getColorName, getFinishName, calculateSubtotal, products]);
 
   const handleCancel = useCallback(() => {
     onOpenChange(false);
@@ -725,10 +684,16 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     setFormData(prev => ({ ...prev, imageUrl }));
   }, []);
 
+  // Memoized function to get colors by material
+  const getColorsByMaterial = useCallback((materialId?: string) => {
+    return getActiveColors(materialId);
+  }, [getActiveColors]);
+
   const formContentProps = useMemo<FormContentProps>(() => ({
     formData,
     onInputChange: handleInputChange,
     onSelectChange: handleSelectChange,
+    onSheetsChange: handleSheetsChange,
     onImageChange: handleImageChange,
     onSave: handleSave,
     onCancel: handleCancel,
@@ -736,9 +701,9 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     categories,
     products,
     materials,
-    colors,
+    getColorsByMaterial,
     finishes,
-  }), [formData, handleInputChange, handleSelectChange, handleImageChange, handleSave, handleCancel, editItem, categories, products, materials, colors, finishes]);
+  }), [formData, handleInputChange, handleSelectChange, handleSheetsChange, handleImageChange, handleSave, handleCancel, editItem, categories, products, materials, getColorsByMaterial, finishes]);
 
   // Mobile: Use Sheet from bottom
   if (isMobile) {

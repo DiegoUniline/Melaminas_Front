@@ -41,10 +41,12 @@ import {
   Settings,
   X,
   ImageIcon,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 import { ClientSelector } from '@/components/quotation/ClientSelector';
 import { FurnitureItemForm } from '@/components/quotation/FurnitureItemForm';
+import { FurnitureItemDetailModal } from '@/components/quotation/FurnitureItemDetailModal';
 import { QuotationActions } from '@/components/quotation/QuotationActions';
 import { useData } from '@/contexts/DataContext';
 import { Client, FurnitureItem, QuotationStatus, Quotation } from '@/types';
@@ -75,6 +77,7 @@ const QuotationsPage: React.FC = () => {
   const [items, setItems] = useState<FurnitureItem[]>([]);
   const [furnitureFormOpen, setFurnitureFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<FurnitureItem | null>(null);
+  const [detailItem, setDetailItem] = useState<FurnitureItem | null>(null);
   
   const [conditions, setConditions] = useState({
     deliveryDays: '15',
@@ -383,6 +386,8 @@ const QuotationsPage: React.FC = () => {
         handleGeneratePDF={handleGeneratePDF}
         setDiscount={setDiscount}
         handleBackToList={handleBackToList}
+        detailItem={detailItem}
+        setDetailItem={setDetailItem}
       />;
     }
     return <MobileQuotationList 
@@ -432,6 +437,8 @@ const QuotationsPage: React.FC = () => {
           handleGeneratePDF={handleGeneratePDF}
           setDiscount={setDiscount}
           handleBackToList={handleBackToList}
+          detailItem={detailItem}
+          setDetailItem={setDetailItem}
         />
       )}
     </ResponsiveLayout>
@@ -585,6 +592,9 @@ interface DetailProps {
   handleGeneratePDF: () => void;
   setDiscount: React.Dispatch<React.SetStateAction<{ amount: string; type: 'percentage' | 'fixed' }>>;
   handleBackToList: () => void;
+  // New: Detail modal
+  detailItem: FurnitureItem | null;
+  setDetailItem: (item: FurnitureItem | null) => void;
 }
 
 const DesktopQuotationDetail: React.FC<DetailProps> = ({
@@ -609,8 +619,16 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
   handleGeneratePDF,
   setDiscount,
   handleBackToList,
+  detailItem,
+  setDetailItem,
 }) => {
   return (
+    <>
+    <FurnitureItemDetailModal
+      open={!!detailItem}
+      onOpenChange={(open) => !open && setDetailItem(null)}
+      item={detailItem}
+    />
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -756,6 +774,14 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setDetailItem(item)}
+                                    title="Ver detalles"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -963,6 +989,7 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
         editItem={editingItem}
       />
     </div>
+    </>
   );
 };
 
@@ -1080,6 +1107,8 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
   handleGeneratePDF,
   setDiscount,
   handleBackToList,
+  detailItem,
+  setDetailItem,
 }) => {
   const [activeTab, setActiveTab] = React.useState('cliente');
   
@@ -1100,6 +1129,12 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
   };
 
   return (
+    <>
+    <FurnitureItemDetailModal
+      open={!!detailItem}
+      onOpenChange={(open) => !open && setDetailItem(null)}
+      item={detailItem}
+    />
     <ResponsiveLayout 
       title={editingQuotationId ? 'Editar Cotización' : 'Nueva Cotización'}
     >
@@ -1272,6 +1307,10 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                           </div>
                         </div>
                         <div className="flex gap-2 mt-2">
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setDetailItem(item)}>
+                            <Eye className="w-3 h-3 mr-1" />
+                            Ver
+                          </Button>
                           <Button size="sm" variant="ghost" className="h-8" onClick={() => handleEditItem(item)}>
                             <Edit2 className="w-3 h-3 mr-1" />
                             Editar
@@ -1399,6 +1438,7 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
         editItem={editingItem}
       />
     </ResponsiveLayout>
+    </>
   );
 };
 

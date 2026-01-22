@@ -589,25 +589,44 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     return item?.id || '';
   };
 
+  // Check if a value is a valid ID in the list
+  const isValidId = (list: { id: string; nombre: string }[], value: string): boolean => {
+    return list.some(i => i.id === value);
+  };
+
   useEffect(() => {
     if (editItem && open) {
-      // Map names to IDs when editing
-      const materialId = findIdByName(materials, editItem.material);
-      const colorId = findIdByName(getActiveColors(), editItem.sheetColor);
-      const finishId = editItem.finish ? findIdByName(finishes, editItem.finish) : '';
+      // Check if values are already IDs or need to be looked up by name
+      // material, sheetColor, finish from API are IDs; from local creation might be IDs too
+      const materialId = isValidId(materials, editItem.material) 
+        ? editItem.material 
+        : findIdByName(materials, editItem.material);
+      
+      const allColors = getActiveColors();
+      const colorId = isValidId(allColors, editItem.sheetColor) 
+        ? editItem.sheetColor 
+        : findIdByName(allColors, editItem.sheetColor);
+      
+      const finishId = editItem.finish 
+        ? (isValidId(finishes, editItem.finish) ? editItem.finish : findIdByName(finishes, editItem.finish))
+        : '';
+
+      const categoryId = editItem.categoryId 
+        ? editItem.categoryId 
+        : (editItem.category === 'otro' ? '7' : findIdByName(categories, editItem.category) || '');
       
       setFormData({
-        categoryId: editItem.category === 'otro' ? '7' : findIdByName(categories, editItem.category) || '',
+        categoryId,
         name: editItem.name,
         description: editItem.description || '',
         height: editItem.height?.toString() || '',
         width: editItem.width?.toString() || '',
         depth: editItem.depth?.toString() || '',
         measureUnit: editItem.measureUnit,
-        materialId: materialId,
+        materialId,
         sheetCount: editItem.sheetCount.toString(),
-        colorId: colorId,
-        finishId: finishId,
+        colorId,
+        finishId,
         unitPrice: editItem.unitPrice.toString(),
         quantity: editItem.quantity.toString(),
         notes: editItem.notes || '',
@@ -616,7 +635,7 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
     } else if (!open) {
       setFormData(initialFormState);
     }
-  }, [editItem, open]);
+  }, [editItem, open, materials, finishes, categories]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

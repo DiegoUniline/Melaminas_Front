@@ -202,37 +202,44 @@ export const mapBusinessProfileToApi = (profile: Partial<BusinessProfile>): Part
 export interface ApiQuotationItem {
   id: string;
   id_cotizacion: string;
-  id_producto?: number;
-  id_categoria?: number;
+  id_producto: number;
+  id_categoria: number;
   nombre: string;
-  descripcion?: string;
-  alto?: number;
-  ancho?: number;
-  profundidad?: number;
-  id_unidad_medida?: number;
-  id_material?: number; // Number for AppSheet
-  cantidad_hojas?: number;
-  id_color?: number; // Number for AppSheet
-  id_acabado?: number; // Number for AppSheet
+  descripcion: string;
+  alto: number;
+  ancho: number;
+  profundidad: number;
+  id_unidad_medida: number;
+  id_material: number;
+  cantidad_hojas: number;
+  id_color: number;
+  id_acabado: number;
   precio_unitario: number;
   cantidad: number;
-  subtotal?: number;
-  notas?: string;
-  Imagen?: string; // Campo de imagen en cotizacion_detalle
+  subtotal: number;
+  notas: string;
+  Imagen: string;
 }
+
+// Helper para parseo seguro de números - evita NaN
+const safeParseInt = (value: string | undefined | null, defaultValue: number = 0): number => {
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+};
 
 export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem => ({
   id: apiItem.id,
-  category: 'otro' as FurnitureCategory, // Se mapea con catálogo
+  category: 'otro' as FurnitureCategory,
   name: apiItem.nombre,
   description: apiItem.descripcion,
   height: apiItem.alto,
   width: apiItem.ancho,
   depth: apiItem.profundidad,
-  measureUnit: 'cm', // Default, se puede mapear con catálogo
-  material: String(apiItem.id_material || ''), // Convert number to string for FurnitureItem
+  measureUnit: 'cm',
+  material: String(apiItem.id_material || ''),
   sheetCount: apiItem.cantidad_hojas || 0,
-  sheetColor: String(apiItem.id_color || ''), // Convert number to string for FurnitureItem
+  sheetColor: String(apiItem.id_color || ''),
   finish: apiItem.id_acabado ? String(apiItem.id_acabado) : undefined,
   unitPrice: Number(apiItem.precio_unitario),
   quantity: Number(apiItem.cantidad),
@@ -241,26 +248,34 @@ export const mapApiQuotationItem = (apiItem: ApiQuotationItem): FurnitureItem =>
   imageUrl: apiItem.Imagen
 });
 
-export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string): ApiQuotationItem => ({
-  id: item.id,
-  id_cotizacion: quotationId,
-  id_producto: item.productId ? parseInt(item.productId) || undefined : undefined, // Required by API
-  id_categoria: item.categoryId ? parseInt(item.categoryId) || undefined : undefined,
-  nombre: item.name,
-  descripcion: item.description || '',
-  alto: item.height || 0,
-  ancho: item.width || 0,
-  profundidad: item.depth || 0,
-  id_material: item.material ? parseInt(item.material) || 0 : 0, // Convert to number
-  cantidad_hojas: item.sheetCount || 1,
-  id_color: item.sheetColor ? parseInt(item.sheetColor) || 0 : 0, // Convert to number
-  id_acabado: item.finish ? parseInt(item.finish) || undefined : undefined, // Convert to number
-  precio_unitario: item.unitPrice,
-  cantidad: item.quantity,
-  subtotal: item.subtotal || item.unitPrice * item.quantity,
-  notas: item.notes || '',
-  Imagen: item.imageUrl || ''
-});
+export const mapQuotationItemToApi = (item: FurnitureItem, quotationId: string): ApiQuotationItem => {
+  const mapped: ApiQuotationItem = {
+    id: item.id,
+    id_cotizacion: quotationId,
+    id_producto: safeParseInt(item.productId, 1),
+    id_categoria: safeParseInt(item.categoryId, 1),
+    nombre: item.name || 'Sin nombre',
+    descripcion: item.description || '',
+    alto: item.height || 0,
+    ancho: item.width || 0,
+    profundidad: item.depth || 0,
+    id_unidad_medida: 1, // 1 = centímetros por defecto
+    id_material: safeParseInt(item.material, 1),
+    cantidad_hojas: item.sheetCount || 1,
+    id_color: safeParseInt(item.sheetColor, 1),
+    id_acabado: safeParseInt(item.finish, 1),
+    precio_unitario: item.unitPrice || 0,
+    cantidad: item.quantity || 1,
+    subtotal: item.subtotal || (item.unitPrice || 0) * (item.quantity || 1),
+    notas: item.notes || '',
+    Imagen: item.imageUrl || ''
+  };
+  
+  console.log('[mapQuotationItemToApi] Input:', item);
+  console.log('[mapQuotationItemToApi] Output:', mapped);
+  
+  return mapped;
+};
 
 // === COTIZACIÓN ===
 export interface ApiQuotation {

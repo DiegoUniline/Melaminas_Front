@@ -124,10 +124,10 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   mapped.correo = client.email || '';
   mapped.ciudad = client.city || '';
   mapped.notas = client.notes || '';
-  mapped.colonia = '';  // Campo requerido por API
-  mapped.estado = '';   // Campo requerido por API
-  mapped.codigo_postal = '';  // Campo requerido por API
-  mapped.rfc = '';      // Campo requerido por API
+  mapped.colonia = '-';  // Campo requerido por API (no acepta vacío)
+  mapped.estado = '-';   // Campo requerido por API (no acepta vacío)
+  mapped.codigo_postal = '-';  // Campo requerido por API (no acepta vacío)
+  mapped.rfc = '-';      // Campo requerido por API (no acepta vacío)
   if (createdBy) mapped.creado_por = createdBy;
   
   // Siempre incluir fecha de actualización en formato ISO

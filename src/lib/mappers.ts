@@ -115,11 +115,11 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   if (client.id !== undefined) mapped.id = client.id;
   if (client.name !== undefined) mapped.nombre = client.name;
   if (client.phone !== undefined) mapped.telefono = client.phone;
-  if (client.whatsapp !== undefined) mapped.whatsapp = client.whatsapp;
-  if (client.email !== undefined) mapped.correo = client.email;
+  if (client.whatsapp !== undefined) mapped.whatsapp = client.whatsapp || '';
+  if (client.email !== undefined) mapped.correo = client.email || '';
   if (client.address !== undefined) mapped.direccion = client.address;
-  if (client.city !== undefined) mapped.ciudad = client.city;
-  if (client.notes !== undefined) mapped.notas = client.notes;
+  if (client.city !== undefined) mapped.ciudad = client.city || '';
+  if (client.notes !== undefined) mapped.notas = client.notes || '';
   if (createdBy) mapped.creado_por = createdBy;
   
   // Siempre incluir fecha de actualización en formato ISO
@@ -128,6 +128,7 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   // Solo incluir fecha de creación al crear, no al actualizar
   if (!isUpdate) {
     mapped.creado_en = formatDateToISO();
+    mapped.activo = 'Y'; // Nuevo cliente siempre activo
   }
   
   return mapped;

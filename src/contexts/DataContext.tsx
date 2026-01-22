@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { BusinessProfile, Client, Quotation } from '@/types';
 import api from '@/lib/api';
 import {
@@ -262,54 +263,84 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateQuotationFn = async (id: string, quotationData: Partial<Quotation>): Promise<boolean> => {
-    // Si hay items, actualizar el detalle
-    if (quotationData.items) {
-      // Eliminar items existentes
-      await api.del(`/cotizacion-detalle/cotizacion/${id}`);
-      
-      // Agregar nuevos items - uno por uno
-      const itemPromises = quotationData.items.map((item, index) => {
-        const itemData = {
-          id: `${id}-${index + 1}`,
-          ...mapQuotationItemToApi(item, id)
-        };
-        console.log('[DataContext] Actualizando item:', itemData);
-        return api.post('/cotizacion-detalle', itemData);
-      });
-      
-      const results = await Promise.all(itemPromises);
-      console.log('[DataContext] Resultados de actualización:', results);
-    }
+    console.log('[DataContext] updateQuotation llamado con:', { id, quotationData });
+    console.log('[DataContext] Items a guardar:', quotationData.items?.length || 0);
     
-    // Actualizar encabezado (excluyendo items, client, y fechas)
-    const { items, client, createdAt, updatedAt, ...headerData } = quotationData as any;
-    
-    if (Object.keys(headerData).length > 0) {
-      const existingQuotation = quotations.find(q => q.id === id);
-      if (existingQuotation) {
-        const apiData = mapQuotationToApi(
-          { ...existingQuotation, ...headerData },
-          existingQuotation.folio,
-          currentUser?.id,
-          true // isUpdate = true
-        );
+    try {
+      // Si hay items (incluso array vacío significa que hay que actualizar)
+      if (quotationData.items !== undefined) {
+        console.log('[DataContext] Eliminando items existentes...');
+        // Eliminar items existentes
+        const deleteResult = await api.del(`/cotizacion-detalle/cotizacion/${id}`);
+        console.log('[DataContext] Resultado de eliminación:', deleteResult);
         
-        const response = await api.put(`/cotizaciones/${id}`, apiData);
-        if (!response.success) {
-          return false;
+        // Agregar nuevos items - uno por uno
+        if (quotationData.items.length > 0) {
+          console.log('[DataContext] Insertando', quotationData.items.length, 'items...');
+          
+          for (let index = 0; index < quotationData.items.length; index++) {
+            const item = quotationData.items[index];
+            const itemData = {
+              id: `${id}-${index + 1}`,
+              ...mapQuotationItemToApi(item, id)
+            };
+            console.log(`[DataContext] Guardando item ${index + 1}:`, JSON.stringify(itemData, null, 2));
+            
+            try {
+              const result = await api.post('/cotizacion-detalle', itemData);
+              console.log(`[DataContext] Resultado item ${index + 1}:`, result);
+              
+              if (!result.success) {
+                console.error(`[DataContext] ERROR al guardar item ${index + 1}:`, result);
+                toast.error(`Error al guardar mueble: ${item.name}`);
+              }
+            } catch (itemError) {
+              console.error(`[DataContext] EXCEPCIÓN al guardar item ${index + 1}:`, itemError);
+              toast.error(`Error al guardar mueble: ${item.name}`);
+            }
+          }
         }
       }
+      
+      // Actualizar encabezado (excluyendo items, client, y fechas)
+      const { items, client, createdAt, updatedAt, ...headerData } = quotationData as any;
+      
+      if (Object.keys(headerData).length > 0) {
+        const existingQuotation = quotations.find(q => q.id === id);
+        if (existingQuotation) {
+          const apiData = mapQuotationToApi(
+            { ...existingQuotation, ...headerData },
+            existingQuotation.folio,
+            currentUser?.id,
+            true // isUpdate = true
+          );
+          
+          console.log('[DataContext] Actualizando encabezado:', apiData);
+          const response = await api.put(`/cotizaciones/${id}`, apiData);
+          console.log('[DataContext] Resultado encabezado:', response);
+          
+          if (!response.success) {
+            console.error('[DataContext] Error al actualizar encabezado:', response);
+            return false;
+          }
+        }
+      }
+      
+      setQuotations(prev => 
+        prev.map(quotation => 
+          quotation.id === id 
+            ? { ...quotation, ...quotationData, updatedAt: new Date() } 
+            : quotation
+        )
+      );
+      
+      console.log('[DataContext] Cotización actualizada exitosamente');
+      return true;
+    } catch (error) {
+      console.error('[DataContext] Error general en updateQuotation:', error);
+      toast.error('Error al actualizar cotización');
+      return false;
     }
-    
-    setQuotations(prev => 
-      prev.map(quotation => 
-        quotation.id === id 
-          ? { ...quotation, ...quotationData, updatedAt: new Date() } 
-          : quotation
-      )
-    );
-    
-    return true;
   };
 
   const deleteQuotationFn = async (id: string): Promise<boolean> => {

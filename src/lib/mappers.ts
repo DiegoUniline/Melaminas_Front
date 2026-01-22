@@ -120,10 +120,14 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   // WhatsApp: siempre incluir, usar teléfono como fallback (API lo requiere)
   mapped.whatsapp = client.whatsapp || client.phone || '';
   
-  // Campos opcionales pero siempre incluirlos para evitar errores de API
+  // Campos requeridos por la API - siempre incluirlos con valores por defecto
   mapped.correo = client.email || '';
   mapped.ciudad = client.city || '';
   mapped.notas = client.notes || '';
+  mapped.colonia = '';  // Campo requerido por API
+  mapped.estado = '';   // Campo requerido por API
+  mapped.codigo_postal = '';  // Campo requerido por API
+  mapped.rfc = '';      // Campo requerido por API
   if (createdBy) mapped.creado_por = createdBy;
   
   // Siempre incluir fecha de actualización en formato ISO

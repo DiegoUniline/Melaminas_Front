@@ -154,11 +154,10 @@ export interface ApiBusinessProfile {
   ciudad: string;
   estado: string;
   rfc?: string;
-  logo_url?: string;
+  logo?: string;
   facebook?: string;
   instagram?: string;
   color_primario?: string;
-  color_secundario?: string;
 }
 
 export const mapApiBusinessProfile = (apiProfile: ApiBusinessProfile): BusinessProfile => ({
@@ -172,7 +171,7 @@ export const mapApiBusinessProfile = (apiProfile: ApiBusinessProfile): BusinessP
   city: apiProfile.ciudad,
   state: apiProfile.estado,
   rfc: apiProfile.rfc,
-  logo: apiProfile.logo_url,
+  logo: apiProfile.logo,
   facebook: apiProfile.facebook,
   instagram: apiProfile.instagram,
   primaryColor: apiProfile.color_primario || '#8B4513'
@@ -189,7 +188,7 @@ export const mapBusinessProfileToApi = (profile: Partial<BusinessProfile>): Part
   if (profile.city !== undefined) mapped.ciudad = profile.city;
   if (profile.state !== undefined) mapped.estado = profile.state;
   if (profile.rfc !== undefined) mapped.rfc = profile.rfc;
-  if (profile.logo !== undefined) mapped.logo_url = profile.logo;
+  if (profile.logo !== undefined) mapped.logo = profile.logo;
   if (profile.facebook !== undefined) mapped.facebook = profile.facebook;
   if (profile.instagram !== undefined) mapped.instagram = profile.instagram;
   if (profile.primaryColor !== undefined) mapped.color_primario = profile.primaryColor;

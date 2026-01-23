@@ -175,8 +175,7 @@ export const mapApiBusinessProfile = (apiProfile: ApiBusinessProfile): BusinessP
   logo: apiProfile.logo_url,
   facebook: apiProfile.facebook,
   instagram: apiProfile.instagram,
-  primaryColor: apiProfile.color_primario || '#8B4513',
-  secondaryColor: apiProfile.color_secundario || '#D2691E'
+  primaryColor: apiProfile.color_primario || '#8B4513'
 });
 
 export const mapBusinessProfileToApi = (profile: Partial<BusinessProfile>): Partial<ApiBusinessProfile> => {
@@ -194,7 +193,6 @@ export const mapBusinessProfileToApi = (profile: Partial<BusinessProfile>): Part
   if (profile.facebook !== undefined) mapped.facebook = profile.facebook;
   if (profile.instagram !== undefined) mapped.instagram = profile.instagram;
   if (profile.primaryColor !== undefined) mapped.color_primario = profile.primaryColor;
-  if (profile.secondaryColor !== undefined) mapped.color_secundario = profile.secondaryColor;
   return mapped;
 };
 

@@ -30,20 +30,30 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleSaveClient = useCallback(async (formData: ClientFormData): Promise<boolean> => {
-    if (!formData.name.trim()) {
-      toast.error('El nombre es obligatorio');
-      return false;
-    }
-    if (!formData.phone.trim()) {
-      toast.error('El teléfono es obligatorio');
-      return false;
-    }
-    if (!formData.address.trim()) {
-      toast.error('La dirección es obligatoria');
-      return false;
-    }
+    try {
+      if (!formData.name.trim()) {
+        toast.error('El nombre es obligatorio');
+        return false;
+      }
+      
+      // WhatsApp validation (mandatory, 10 digits)
+      const whatsappDigits = formData.whatsapp.replace(/\D/g, '');
+      if (!formData.whatsapp.trim()) {
+        toast.error('El WhatsApp es obligatorio');
+        return false;
+      }
+      if (whatsappDigits.length !== 10) {
+        toast.error('El WhatsApp debe tener 10 dígitos');
+        return false;
+      }
+      
+      if (!formData.address.trim()) {
+        toast.error('La dirección es obligatoria');
+        return false;
+      }
 
-    const client = await addClient({
+      console.log('[ClientSelector] Creating client:', formData);
+      const client = await addClient({
       name: formData.name.trim(),
       phone: formData.phone.trim(),
       whatsapp: formData.whatsapp.trim() || undefined,
@@ -53,11 +63,17 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
       notes: formData.notes.trim() || undefined,
     });
 
-    if (client) {
-      onSelectClient(client);
-      toast.success('Cliente creado exitosamente');
-      return true;
-    } else {
+      if (client) {
+        console.log('[ClientSelector] Client created:', client);
+        onSelectClient(client);
+        toast.success('Cliente creado exitosamente');
+        return true;
+      } else {
+        toast.error('Error al crear cliente');
+        return false;
+      }
+    } catch (error) {
+      console.error('[ClientSelector] Error creating client:', error);
       toast.error('Error al crear cliente');
       return false;
     }

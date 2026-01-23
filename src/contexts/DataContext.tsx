@@ -90,8 +90,7 @@ const defaultBusinessProfile: BusinessProfile = {
   address: '',
   city: '',
   state: '',
-  primaryColor: '#8B4513',
-  secondaryColor: '#D2691E'
+  primaryColor: '#8B4513'
 };
 
 // Cache duration in milliseconds (30 seconds)

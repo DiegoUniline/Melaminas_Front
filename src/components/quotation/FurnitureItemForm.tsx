@@ -193,7 +193,7 @@ const FormContentComponent = memo<FormContentProps>(({
             <Label className="text-sm font-medium">
               Nombre del mueble <span className="text-destructive">*</span>
             </Label>
-            {products.length > 0 ? (
+            {products.length > 0 && formData.name !== 'custom' ? (
               <Select
                 value={formData.name}
                 onValueChange={(value) => onSelectChange('name', value)}
@@ -210,6 +210,27 @@ const FormContentComponent = memo<FormContentProps>(({
                   <SelectItem value="custom">✏️ Otro (personalizado)</SelectItem>
                 </SelectContent>
               </Select>
+            ) : formData.name === 'custom' || products.length === 0 ? (
+              <div className="space-y-2">
+                <Input
+                  name="customName"
+                  value={formData.name === 'custom' ? '' : formData.name}
+                  onChange={(e) => onSelectChange('name', e.target.value || 'custom')}
+                  placeholder="Nombre personalizado del mueble"
+                  className="h-11"
+                />
+                {products.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSelectChange('name', '')}
+                    className="text-xs"
+                  >
+                    ← Volver a lista
+                  </Button>
+                )}
+              </div>
             ) : (
               <Input
                 name="name"
@@ -217,15 +238,6 @@ const FormContentComponent = memo<FormContentProps>(({
                 onChange={onInputChange}
                 placeholder="Ej: Mesa de centro"
                 className="h-11"
-              />
-            )}
-            {formData.name === 'custom' && (
-              <Input
-                name="name"
-                value=""
-                onChange={(e) => onSelectChange('name', e.target.value)}
-                placeholder="Nombre personalizado"
-                className="h-11 mt-2"
               />
             )}
           </div>
@@ -611,13 +623,31 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
       toast.error('Selecciona una categoría');
       return;
     }
-    if (!formData.name.trim()) {
+    
+    // Check for valid name (not empty and not 'custom')
+    const finalName = formData.name.trim();
+    if (!finalName || finalName === 'custom') {
       toast.error('El nombre del mueble es obligatorio');
       return;
     }
     
-    // Validate at least one complete sheet
-    const validSheets = formData.sheets.filter(s => s.materialId && s.colorId);
+    // Validate at least one complete sheet - more detailed logging
+    console.log('[FurnitureItemForm] Validating sheets:', formData.sheets);
+    const validSheets = formData.sheets.filter(s => {
+      const hasValidMaterial = s.materialId && s.materialId.trim() !== '';
+      const hasValidColor = s.colorId && s.colorId.trim() !== '';
+      console.log('[FurnitureItemForm] Sheet check:', { 
+        id: s.id, 
+        materialId: s.materialId, 
+        colorId: s.colorId, 
+        hasValidMaterial, 
+        hasValidColor 
+      });
+      return hasValidMaterial && hasValidColor;
+    });
+    
+    console.log('[FurnitureItemForm] Valid sheets found:', validSheets.length);
+    
     if (validSheets.length === 0) {
       toast.error('Agrega al menos una hoja con material y color');
       return;
@@ -642,12 +672,15 @@ export const FurnitureItemForm: React.FC<FurnitureItemFormProps> = ({
       return product?.id;
     };
 
+    // Use the validated final name
+    const itemName = finalName;
+
     const item: FurnitureItem = {
       id: editItem?.id || Date.now().toString(),
       category: 'otro' as FurnitureCategory,
       categoryId: formData.categoryId,
-      productId: findProductIdByName(formData.name),
-      name: formData.name.trim(),
+      productId: findProductIdByName(itemName),
+      name: itemName,
       description: formData.description.trim() || undefined,
       height: formData.height ? parseFloat(formData.height) : undefined,
       width: formData.width ? parseFloat(formData.width) : undefined,

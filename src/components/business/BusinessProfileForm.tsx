@@ -45,8 +45,9 @@ export const BusinessProfileForm: React.FC = () => {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('La imagen no debe superar 2MB');
+      // Changed from 2MB to 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('La imagen no debe superar 10MB');
         return;
       }
       
@@ -142,7 +143,7 @@ export const BusinessProfileForm: React.FC = () => {
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
   };
 
-  const handleColorChange = (field: 'primaryColor' | 'secondaryColor', hexValue: string) => {
+  const handleColorChange = (field: 'primaryColor', hexValue: string) => {
     const hslValue = hexToHsl(hexValue);
     setFormData(prev => prev ? { ...prev, [field]: hslValue } : prev);
   };
@@ -156,7 +157,6 @@ export const BusinessProfileForm: React.FC = () => {
   }
 
   const primaryColorStyle = hslToStyle(formData.primaryColor);
-  const secondaryColorStyle = hslToStyle(formData.secondaryColor);
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -388,53 +388,31 @@ export const BusinessProfileForm: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              Colores del Negocio
+              Color del Negocio
             </CardTitle>
             <CardDescription>
-              Estos colores se usarán en el diseño de tus cotizaciones PDF
+              Este color se usará en el diseño de tus cotizaciones PDF
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="primaryColor">Color Principal</Label>
-                <div className="flex items-center gap-3 mt-2">
-                  <input
-                    type="color"
-                    id="primaryColorPicker"
-                    value={hslToHex(formData.primaryColor)}
-                    onChange={(e) => handleColorChange('primaryColor', e.target.value)}
-                    className="w-14 h-10 rounded border border-input cursor-pointer bg-transparent"
+            <div className="max-w-sm">
+              <Label htmlFor="primaryColor">Color Principal</Label>
+              <div className="flex items-center gap-3 mt-2">
+                <input
+                  type="color"
+                  id="primaryColorPicker"
+                  value={hslToHex(formData.primaryColor)}
+                  onChange={(e) => handleColorChange('primaryColor', e.target.value)}
+                  className="w-14 h-10 rounded border border-input cursor-pointer bg-transparent"
+                />
+                <div className="flex-1">
+                  <div 
+                    className="w-full h-10 rounded border border-input"
+                    style={{ backgroundColor: primaryColorStyle }}
                   />
-                  <div className="flex-1">
-                    <div 
-                      className="w-full h-10 rounded border border-input"
-                      style={{ backgroundColor: primaryColorStyle }}
-                    />
-                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Haz clic para seleccionar un color</p>
               </div>
-              
-              <div>
-                <Label htmlFor="secondaryColor">Color Secundario</Label>
-                <div className="flex items-center gap-3 mt-2">
-                  <input
-                    type="color"
-                    id="secondaryColorPicker"
-                    value={hslToHex(formData.secondaryColor)}
-                    onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
-                    className="w-14 h-10 rounded border border-input cursor-pointer bg-transparent"
-                  />
-                  <div className="flex-1">
-                    <div 
-                      className="w-full h-10 rounded border border-input"
-                      style={{ backgroundColor: secondaryColorStyle }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Haz clic para seleccionar un color</p>
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">Haz clic para seleccionar un color</p>
             </div>
           </CardContent>
         </Card>

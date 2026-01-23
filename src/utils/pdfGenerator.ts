@@ -75,8 +75,8 @@ export const generateQuotationPDF = (
     city: '',
     phone: '',
     email: '',
-    primaryColor: '340 30% 45%',
-    secondaryColor: '40 60% 50%'
+    logo: undefined as string | undefined,
+    primaryColor: '340 30% 45%'
   };
   
   // Colors from business profile
@@ -84,6 +84,20 @@ export const generateQuotationPDF = (
   const textColor: [number, number, number] = [51, 51, 51];
   
   let yPosition = 20;
+
+  // Add logo if available
+  if (profile.logo) {
+    try {
+      // Logo centered at top
+      const logoWidth = 30;
+      const logoHeight = 15;
+      const logoX = (pageWidth - logoWidth) / 2;
+      doc.addImage(profile.logo, 'PNG', logoX, yPosition, logoWidth, logoHeight);
+      yPosition += logoHeight + 5;
+    } catch (error) {
+      console.warn('Could not add logo to PDF:', error);
+    }
+  }
 
   // Header with business name
   doc.setFontSize(24);

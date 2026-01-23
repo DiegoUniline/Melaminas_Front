@@ -190,14 +190,12 @@ export const QuotationImagePreview: React.FC<QuotationImagePreviewProps> = ({
               📅 {quotation.validityDays} días
             </p>
           </div>
-          {quotation.advancePercentage && (
-            <div>
-              <p style={{ fontSize: '11px', color: '#666', margin: 0 }}>Anticipo</p>
-              <p style={{ fontSize: '13px', fontWeight: 600, margin: '2px 0 0 0' }}>
-                💳 {quotation.advancePercentage}%
-              </p>
-            </div>
-          )}
+          <div>
+            <p style={{ fontSize: '11px', color: '#666', margin: 0 }}>Método de pago</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, margin: '2px 0 0 0' }}>
+              💳 {quotation.paymentTerms}
+            </p>
+          </div>
         </div>
       </div>
 

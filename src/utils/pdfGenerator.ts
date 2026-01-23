@@ -323,8 +323,7 @@ export const generateQuotationPDF = (
   
   const conditions = [
     `• Tiempo de entrega: ${quotation.deliveryDays} días hábiles`,
-    `• Forma de pago: ${quotation.paymentTerms}`,
-    quotation.advancePercentage ? `• Anticipo requerido: ${quotation.advancePercentage}%` : null,
+    `• Método de pago: ${quotation.paymentTerms}`,
     `• Vigencia de cotización: ${quotation.validityDays} días`,
   ].filter(Boolean);
 

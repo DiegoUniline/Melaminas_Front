@@ -51,10 +51,7 @@ export const generateWhatsAppMessage = (
   
   message += `⏱️ Tiempo de entrega: ${quotation.deliveryDays} días\n`;
   message += `📆 Vigencia: ${quotation.validityDays} días\n`;
-  
-  if (quotation.advancePercentage) {
-    message += `💳 Anticipo: ${quotation.advancePercentage}%\n`;
-  }
+  message += `💳 Método de pago: ${quotation.paymentTerms}\n`;
   
   if (quotation.observations) {
     message += `\n📝 *Notas:* ${quotation.observations}\n`;

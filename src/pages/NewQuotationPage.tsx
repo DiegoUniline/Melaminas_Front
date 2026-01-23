@@ -38,8 +38,7 @@ const NewQuotationPage: React.FC = () => {
   const [conditions, setConditions] = useState({
     deliveryDays: '15',
     validityDays: '30',
-    paymentTerms: '50% anticipo, 50% contra entrega',
-    advancePercentage: '50',
+    paymentTerms: 'Efectivo',
     observations: '',
   });
 
@@ -57,7 +56,6 @@ const NewQuotationPage: React.FC = () => {
         deliveryDays: existingQuotation.deliveryDays.toString(),
         validityDays: existingQuotation.validityDays.toString(),
         paymentTerms: existingQuotation.paymentTerms,
-        advancePercentage: existingQuotation.advancePercentage?.toString() || '',
         observations: existingQuotation.observations || '',
       });
       if (existingQuotation.discount) {
@@ -123,7 +121,6 @@ const NewQuotationPage: React.FC = () => {
       deliveryDays: parseInt(conditions.deliveryDays) || 15,
       validityDays: parseInt(conditions.validityDays) || 30,
       paymentTerms: conditions.paymentTerms,
-      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
       observations: conditions.observations || undefined,
       status,
     };
@@ -166,7 +163,6 @@ const NewQuotationPage: React.FC = () => {
       deliveryDays: parseInt(conditions.deliveryDays) || 15,
       validityDays: parseInt(conditions.validityDays) || 30,
       paymentTerms: conditions.paymentTerms,
-      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
       observations: conditions.observations || undefined,
       status: 'enviada' as QuotationStatus,
     };
@@ -374,25 +370,12 @@ const NewQuotationPage: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
-                  <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                  <SelectItem value="40% anticipo, 30% a mitad, 30% contra entrega">40% - 30% - 30%</SelectItem>
-                  <SelectItem value="30% anticipo, 70% contra entrega">30% anticipo, 70% contra entrega</SelectItem>
-                  <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
+                  <SelectItem value="Efectivo">Efectivo</SelectItem>
+                  <SelectItem value="Tarjeta">Tarjeta</SelectItem>
+                  <SelectItem value="Transferencia">Transferencia</SelectItem>
+                  <SelectItem value="Mixto">Mixto</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="advancePercentage">Porcentaje de anticipo</Label>
-              <Input
-                id="advancePercentage"
-                name="advancePercentage"
-                type="number"
-                inputMode="numeric"
-                value={conditions.advancePercentage}
-                onChange={handleConditionChange}
-                placeholder="50"
-              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="observations">Observaciones</Label>

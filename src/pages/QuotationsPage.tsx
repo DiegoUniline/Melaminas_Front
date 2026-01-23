@@ -83,8 +83,7 @@ const QuotationsPage: React.FC = () => {
   const [conditions, setConditions] = useState({
     deliveryDays: '15',
     validityDays: '30',
-    paymentTerms: '50% anticipo, 50% contra entrega',
-    advancePercentage: '50',
+    paymentTerms: 'Efectivo',
     observations: '',
   });
 
@@ -116,7 +115,6 @@ const QuotationsPage: React.FC = () => {
       deliveryDays: quotation.deliveryDays.toString(),
       validityDays: quotation.validityDays.toString(),
       paymentTerms: quotation.paymentTerms,
-      advancePercentage: quotation.advancePercentage?.toString() || '',
       observations: quotation.observations || '',
     });
     if (quotation.discount) {
@@ -135,8 +133,7 @@ const QuotationsPage: React.FC = () => {
     setConditions({
       deliveryDays: '15',
       validityDays: '30',
-      paymentTerms: '50% anticipo, 50% contra entrega',
-      advancePercentage: '50',
+      paymentTerms: 'Efectivo',
       observations: '',
     });
     setDiscount({ amount: '', type: 'percentage' });
@@ -180,7 +177,6 @@ const QuotationsPage: React.FC = () => {
           deliveryDays: parseInt(conditions.deliveryDays) || 15,
           validityDays: parseInt(conditions.validityDays) || 30,
           paymentTerms: conditions.paymentTerms,
-          advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
           observations: conditions.observations || undefined,
           status: 'borrador' as QuotationStatus,
         };
@@ -254,7 +250,6 @@ const QuotationsPage: React.FC = () => {
       deliveryDays: parseInt(conditions.deliveryDays) || 15,
       validityDays: parseInt(conditions.validityDays) || 30,
       paymentTerms: conditions.paymentTerms,
-      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
       observations: conditions.observations || undefined,
       status,
     };
@@ -296,7 +291,6 @@ const QuotationsPage: React.FC = () => {
       deliveryDays: parseInt(conditions.deliveryDays) || 15,
       validityDays: parseInt(conditions.validityDays) || 30,
       paymentTerms: conditions.paymentTerms,
-      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
       observations: conditions.observations || undefined,
       status: 'enviada' as QuotationStatus,
     };
@@ -571,7 +565,6 @@ interface DetailProps {
     deliveryDays: string;
     validityDays: string;
     paymentTerms: string;
-    advancePercentage: string;
     observations: string;
   };
   discount: {
@@ -897,22 +890,8 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                             <SelectItem value="Tarjeta">Tarjeta</SelectItem>
                             <SelectItem value="Transferencia">Transferencia</SelectItem>
                             <SelectItem value="Mixto">Mixto</SelectItem>
-                            <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
-                            <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                            <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="advancePercentage">Porcentaje de anticipo</Label>
-                        <Input
-                          id="advancePercentage"
-                          name="advancePercentage"
-                          type="number"
-                          value={conditions.advancePercentage}
-                          onChange={handleConditionChange}
-                          placeholder="50"
-                        />
                       </div>
                     </div>
                   </div>
@@ -994,7 +973,6 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                       deliveryDays: parseInt(conditions.deliveryDays) || 15,
                       validityDays: parseInt(conditions.validityDays) || 30,
                       paymentTerms: conditions.paymentTerms,
-                      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
                       observations: conditions.observations || undefined,
                       status: 'enviada' as const,
                       createdAt: new Date(),
@@ -1426,9 +1404,6 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                       <SelectItem value="Tarjeta">Tarjeta</SelectItem>
                       <SelectItem value="Transferencia">Transferencia</SelectItem>
                       <SelectItem value="Mixto">Mixto</SelectItem>
-                      <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
-                      <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                      <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1482,7 +1457,6 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                         deliveryDays: parseInt(conditions.deliveryDays) || 15,
                         validityDays: parseInt(conditions.validityDays) || 30,
                         paymentTerms: conditions.paymentTerms,
-                        advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
                         observations: conditions.observations || undefined,
                         status: 'enviada' as const,
                         createdAt: new Date(),

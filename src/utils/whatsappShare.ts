@@ -84,13 +84,14 @@ export const shareViaWhatsApp = (
 };
 
 /**
- * Shares to client's WhatsApp if available (text only fallback)
+ * Shares to client's WhatsApp - uses whatsapp field as primary
  */
 export const shareToClientWhatsApp = (
   quotation: Quotation,
   businessProfile: BusinessProfile | null
 ): void => {
-  const clientPhone = quotation.client.whatsapp || quotation.client.phone;
+  // WhatsApp field is now mandatory, use it as primary
+  const clientPhone = quotation.client.whatsapp;
   shareViaWhatsApp(quotation, businessProfile, clientPhone);
 };
 

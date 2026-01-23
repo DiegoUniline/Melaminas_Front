@@ -41,6 +41,12 @@ interface ClientFormModalProps {
   title?: string;
 }
 
+// Validate WhatsApp: exactly 10 digits
+const validateWhatsApp = (value: string): boolean => {
+  const digits = value.replace(/\D/g, '');
+  return digits.length === 10;
+};
+
 export const ClientFormModal: React.FC<ClientFormModalProps> = ({
   open,
   onOpenChange,
@@ -50,6 +56,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<ClientFormData>(defaultFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
 
   // Reset form when modal opens/closes or editing client changes
   useEffect(() => {
@@ -67,22 +74,49 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
       } else {
         setFormData(defaultFormData);
       }
+      setWhatsappError(null);
     }
   }, [open, editingClient]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear WhatsApp error when typing
+    if (name === 'whatsapp') {
+      setWhatsappError(null);
+    }
   }, []);
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    const success = await onSave(formData);
-    setIsSubmitting(false);
-    
-    if (success) {
-      onOpenChange(false);
-      setFormData(defaultFormData);
+    try {
+      // Validate WhatsApp (mandatory, 10 digits)
+      if (!formData.whatsapp.trim()) {
+        setWhatsappError('WhatsApp es obligatorio');
+        return;
+      }
+      
+      if (!validateWhatsApp(formData.whatsapp)) {
+        setWhatsappError('El WhatsApp debe tener exactamente 10 dígitos');
+        return;
+      }
+
+      setIsSubmitting(true);
+      console.log('[ClientFormModal] Submitting form data:', formData);
+      
+      const success = await onSave(formData);
+      console.log('[ClientFormModal] Save result:', success);
+      
+      setIsSubmitting(false);
+      
+      if (success) {
+        onOpenChange(false);
+        setFormData(defaultFormData);
+        setWhatsappError(null);
+      }
+    } catch (error) {
+      console.error('[ClientFormModal] Error submitting:', error);
+      setIsSubmitting(false);
     }
   };
 
@@ -109,30 +143,38 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
               placeholder="Nombre completo"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono *</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="555-1234567"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp</Label>
-              <Input
-                id="whatsapp"
-                name="whatsapp"
-                type="tel"
-                value={formData.whatsapp}
-                onChange={handleInputChange}
-                placeholder="5551234567"
-              />
-            </div>
+          
+          {/* WhatsApp FIRST and MANDATORY */}
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp">WhatsApp * (10 dígitos)</Label>
+            <Input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              value={formData.whatsapp}
+              onChange={handleInputChange}
+              placeholder="5551234567"
+              className={whatsappError ? 'border-destructive' : ''}
+              maxLength={15}
+            />
+            {whatsappError && (
+              <p className="text-sm text-destructive">{whatsappError}</p>
+            )}
           </div>
+          
+          {/* Phone is now optional and second */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono (opcional)</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder="555-1234567"
+            />
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>
             <Input

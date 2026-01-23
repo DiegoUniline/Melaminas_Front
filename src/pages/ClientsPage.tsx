@@ -56,18 +56,27 @@ const ClientsPage: React.FC = () => {
   }, []);
 
   const handleSaveClient = useCallback(async (formData: ClientFormData): Promise<boolean> => {
-    if (!formData.name.trim()) {
-      toast.error('El nombre es obligatorio');
-      return false;
-    }
-    if (!formData.phone.trim()) {
-      toast.error('El teléfono es obligatorio');
-      return false;
-    }
-    if (!formData.address.trim()) {
-      toast.error('La dirección es obligatoria');
-      return false;
-    }
+    try {
+      if (!formData.name.trim()) {
+        toast.error('El nombre es obligatorio');
+        return false;
+      }
+      
+      // WhatsApp validation (mandatory, 10 digits)
+      const whatsappDigits = formData.whatsapp.replace(/\D/g, '');
+      if (!formData.whatsapp.trim()) {
+        toast.error('El WhatsApp es obligatorio');
+        return false;
+      }
+      if (whatsappDigits.length !== 10) {
+        toast.error('El WhatsApp debe tener 10 dígitos');
+        return false;
+      }
+      
+      if (!formData.address.trim()) {
+        toast.error('La dirección es obligatoria');
+        return false;
+      }
 
     const clientData = {
       name: formData.name.trim(),
@@ -79,21 +88,28 @@ const ClientsPage: React.FC = () => {
       notes: formData.notes.trim() || undefined,
     };
 
-    if (editingClient) {
-      const success = await updateClient(editingClient.id, clientData);
-      if (success) {
-        toast.success('Cliente actualizado');
-        return true;
+      console.log('[ClientsPage] Saving client:', clientData);
+      
+      if (editingClient) {
+        const success = await updateClient(editingClient.id, clientData);
+        if (success) {
+          toast.success('Cliente actualizado');
+          return true;
+        }
+        toast.error('Error al actualizar cliente');
+        return false;
+      } else {
+        const newClient = await addClient(clientData);
+        if (newClient) {
+          toast.success('Cliente creado');
+          return true;
+        }
+        toast.error('Error al crear cliente');
+        return false;
       }
-      toast.error('Error al actualizar cliente');
-      return false;
-    } else {
-      const newClient = await addClient(clientData);
-      if (newClient) {
-        toast.success('Cliente creado');
-        return true;
-      }
-      toast.error('Error al crear cliente');
+    } catch (error) {
+      console.error('[ClientsPage] Error saving client:', error);
+      toast.error('Error al guardar cliente');
       return false;
     }
   }, [editingClient, updateClient, addClient]);

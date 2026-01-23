@@ -27,7 +27,6 @@ export interface BusinessProfile {
   facebook?: string;
   instagram?: string;
   primaryColor: string;
-  secondaryColor: string;
 }
 
 export interface Client {

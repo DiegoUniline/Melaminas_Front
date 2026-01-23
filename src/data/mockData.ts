@@ -14,8 +14,7 @@ export const mockBusinessProfile: BusinessProfile = {
   rfc: 'RAMC850201XYZ',
   facebook: 'elmelaminas',
   instagram: '@elmelaminas',
-  primaryColor: '25 70% 35%',
-  secondaryColor: '40 60% 50%'
+  primaryColor: '25 70% 35%'
 };
 
 // Usuarios del sistema

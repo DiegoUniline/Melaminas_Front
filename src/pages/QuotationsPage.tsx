@@ -51,6 +51,7 @@ import { QuotationActions } from '@/components/quotation/QuotationActions';
 import { useData } from '@/contexts/DataContext';
 import { Client, FurnitureItem, QuotationStatus, Quotation } from '@/types';
 import { downloadQuotationPDF } from '@/utils/pdfGenerator';
+import { shareToClientWhatsApp } from '@/utils/whatsappShare';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -642,13 +643,9 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handleSave('borrador')}>
-            <Save className="w-4 h-4 mr-2" />
-            Guardar Borrador
-          </Button>
-          <Button onClick={handleGeneratePDF}>
+          <Button variant="outline" onClick={handleGeneratePDF}>
             <FileText className="w-4 h-4 mr-2" />
-            Generar PDF
+            Descargar PDF
           </Button>
         </div>
       </div>
@@ -804,6 +801,17 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                         </TableBody>
                       </Table>
                     )}
+
+                    {/* Design CTA Button */}
+                    <div className="pt-4">
+                      <Button
+                        variant="outline"
+                        className="w-full border-dashed border-primary text-primary hover:bg-primary/5"
+                        onClick={() => window.open('https://wa.me/525540718923?text=Hola, necesito un diseño para mi mueble', '_blank')}
+                      >
+                        ✨ ¿Necesitas el diseño? Nosotros te lo hacemos
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </TabsContent>
@@ -873,10 +881,10 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
 
                   {/* Forma de pago */}
                   <div className="space-y-4">
-                    <h3 className="font-medium text-lg">Forma de Pago</h3>
+                    <h3 className="font-medium text-lg">Método de Pago</h3>
                     <div className="grid grid-cols-2 gap-4 max-w-2xl">
                       <div className="space-y-2">
-                        <Label htmlFor="paymentTerms">Términos de pago</Label>
+                        <Label htmlFor="paymentTerms">Forma de pago</Label>
                         <Select
                           value={conditions.paymentTerms}
                           onValueChange={(value) => handleConditionChange({ target: { name: 'paymentTerms', value } } as any)}
@@ -885,10 +893,12 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-background border shadow-lg z-50">
+                            <SelectItem value="Efectivo">Efectivo</SelectItem>
+                            <SelectItem value="Tarjeta">Tarjeta</SelectItem>
+                            <SelectItem value="Transferencia">Transferencia</SelectItem>
+                            <SelectItem value="Mixto">Mixto</SelectItem>
                             <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
                             <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                            <SelectItem value="40% anticipo, 30% a mitad, 30% contra entrega">40% - 30% - 30%</SelectItem>
-                            <SelectItem value="30% anticipo, 70% contra entrega">30% anticipo, 70% contra entrega</SelectItem>
                             <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
                           </SelectContent>
                         </Select>
@@ -967,9 +977,34 @@ const DesktopQuotationDetail: React.FC<DetailProps> = ({
 
               {/* Quick actions */}
               <div className="pt-4 space-y-2">
-                <Button className="w-full" onClick={() => handleSave('enviada')}>
+                <Button className="w-full" onClick={async () => {
+                  await handleSave('enviada');
+                  // Auto-send to WhatsApp after saving
+                  if (selectedClient?.whatsapp) {
+                    const quotation = {
+                      id: editingQuotationId || 'temp',
+                      folio: 'Nueva',
+                      clientId: selectedClient.id,
+                      client: selectedClient,
+                      items,
+                      subtotal,
+                      total,
+                      discount: discount.amount ? parseFloat(discount.amount) : undefined,
+                      discountType: discount.amount ? discount.type : undefined,
+                      deliveryDays: parseInt(conditions.deliveryDays) || 15,
+                      validityDays: parseInt(conditions.validityDays) || 30,
+                      paymentTerms: conditions.paymentTerms,
+                      advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
+                      observations: conditions.observations || undefined,
+                      status: 'enviada' as const,
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                    };
+                    shareToClientWhatsApp(quotation, null);
+                  }
+                }}>
                   <Send className="w-4 h-4 mr-2" />
-                  Marcar como Enviada
+                  Enviar
                 </Button>
                 <Button variant="outline" className="w-full" onClick={handleGeneratePDF}>
                   <FileText className="w-4 h-4 mr-2" />
@@ -1340,6 +1375,17 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
+                  
+                  {/* Design CTA Button */}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full border-dashed border-primary text-primary hover:bg-primary/5 text-sm"
+                      onClick={() => window.open('https://wa.me/525540718923?text=Hola, necesito un diseño para mi mueble', '_blank')}
+                    >
+                      ✨ ¿Necesitas el diseño? Nosotros te lo hacemos
+                    </Button>
+                  </div>
                 </>
               )}
             </CardContent>
@@ -1370,15 +1416,18 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Forma de pago</Label>
+                  <Label>Método de pago</Label>
                   <Select value={conditions.paymentTerms} onValueChange={(value) => handleConditionChange({ target: { name: 'paymentTerms', value } } as any)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="Efectivo">Efectivo</SelectItem>
+                      <SelectItem value="Tarjeta">Tarjeta</SelectItem>
+                      <SelectItem value="Transferencia">Transferencia</SelectItem>
+                      <SelectItem value="Mixto">Mixto</SelectItem>
                       <SelectItem value="50% anticipo, 50% contra entrega">50% anticipo, 50% contra entrega</SelectItem>
                       <SelectItem value="100% anticipo">100% anticipo</SelectItem>
-                      <SelectItem value="40% anticipo, 30% a mitad, 30% contra entrega">40% - 30% - 30%</SelectItem>
                       <SelectItem value="Pago contra entrega">Pago contra entrega</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1415,14 +1464,35 @@ const MobileQuotationDetail: React.FC<DetailProps> = ({
                     <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="secondary" onClick={() => handleSave('borrador')}>
-                    <Save className="w-4 h-4 mr-1" />
-                    Guardar
-                  </Button>
-                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" onClick={handleGeneratePDF}>
-                    <FileText className="w-4 h-4 mr-1" />
-                    PDF
+                <div className="grid grid-cols-1 gap-3">
+                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" onClick={async () => {
+                    await handleSave('enviada');
+                    // Auto-send to WhatsApp after saving
+                    if (selectedClient?.whatsapp) {
+                      const quotation = {
+                        id: editingQuotationId || 'temp',
+                        folio: 'Nueva',
+                        clientId: selectedClient.id,
+                        client: selectedClient,
+                        items,
+                        subtotal,
+                        total,
+                        discount: discount.amount ? parseFloat(discount.amount) : undefined,
+                        discountType: discount.amount ? discount.type : undefined,
+                        deliveryDays: parseInt(conditions.deliveryDays) || 15,
+                        validityDays: parseInt(conditions.validityDays) || 30,
+                        paymentTerms: conditions.paymentTerms,
+                        advancePercentage: conditions.advancePercentage ? parseInt(conditions.advancePercentage) : undefined,
+                        observations: conditions.observations || undefined,
+                        status: 'enviada' as const,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                      };
+                      shareToClientWhatsApp(quotation, null);
+                    }
+                  }}>
+                    <Send className="w-4 h-4 mr-1" />
+                    Enviar
                   </Button>
                 </div>
               </CardContent>

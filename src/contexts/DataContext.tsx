@@ -144,12 +144,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       console.log('[DataContext] Creating client with data:', apiData);
       
-      const response = await api.post<ApiClient>('/clientes', apiData);
+      const response = await api.post<{ Rows: ApiClient[] } | ApiClient>('/clientes', apiData);
       
       console.log('[DataContext] API Response:', response);
       
       if (response.success && response.data) {
-        const newClient = mapApiClient(response.data);
+        // Handle both response formats: { Rows: [...] } or direct object
+        let clientData: ApiClient;
+        if ('Rows' in response.data && Array.isArray(response.data.Rows)) {
+          // API returns { Rows: [...] } format
+          if (response.data.Rows.length === 0) {
+            console.error('[DataContext] API returned empty Rows array');
+            return null;
+          }
+          clientData = response.data.Rows[0];
+        } else {
+          // API returns direct object
+          clientData = response.data as ApiClient;
+        }
+        
+        const newClient = mapApiClient(clientData);
         console.log('[DataContext] Mapped new client:', newClient);
         setClients(prev => [...prev, newClient]);
         return newClient;

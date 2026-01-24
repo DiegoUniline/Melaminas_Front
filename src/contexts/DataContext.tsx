@@ -138,17 +138,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addClientFn = async (clientData: Omit<Client, 'id' | 'createdAt'>): Promise<Client | null> => {
-    const newId = Date.now().toString();
-    const apiData = mapClientToApi({ ...clientData, id: newId }, currentUser?.id);
-    
-    const response = await api.post<ApiClient>('/clientes', apiData);
-    
-    if (response.success && response.data) {
-      const newClient = mapApiClient(response.data);
-      setClients(prev => [...prev, newClient]);
-      return newClient;
+    try {
+      const newId = Date.now().toString();
+      const apiData = mapClientToApi({ ...clientData, id: newId }, currentUser?.id);
+      
+      console.log('[DataContext] Creating client with data:', apiData);
+      
+      const response = await api.post<ApiClient>('/clientes', apiData);
+      
+      console.log('[DataContext] API Response:', response);
+      
+      if (response.success && response.data) {
+        const newClient = mapApiClient(response.data);
+        console.log('[DataContext] Mapped new client:', newClient);
+        setClients(prev => [...prev, newClient]);
+        return newClient;
+      } else {
+        console.error('[DataContext] Failed to create client:', response.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('[DataContext] Exception creating client:', error);
+      return null;
     }
-    return null;
   };
 
   const updateClientFn = async (id: string, clientData: Partial<Client>): Promise<boolean> => {

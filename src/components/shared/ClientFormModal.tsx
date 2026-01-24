@@ -104,18 +104,25 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
       setIsSubmitting(true);
       console.log('[ClientFormModal] Submitting form data:', formData);
       
-      const success = await onSave(formData);
+      let success = false;
+      try {
+        success = await onSave(formData);
+      } catch (saveError) {
+        console.error('[ClientFormModal] Error in onSave:', saveError);
+        success = false;
+      }
+      
       console.log('[ClientFormModal] Save result:', success);
       
-      setIsSubmitting(false);
-      
       if (success) {
-        onOpenChange(false);
+        // Don't close here for new clients - let ClientSelector handle it
+        // Only reset form data
         setFormData(defaultFormData);
         setWhatsappError(null);
       }
     } catch (error) {
       console.error('[ClientFormModal] Error submitting:', error);
+    } finally {
       setIsSubmitting(false);
     }
   };

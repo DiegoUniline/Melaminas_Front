@@ -53,22 +53,38 @@ export const ClientSelector: React.FC<ClientSelectorProps> = ({
       }
 
       console.log('[ClientSelector] Creating client:', formData);
-      const client = await addClient({
-      name: formData.name.trim(),
-      phone: formData.phone.trim(),
-      whatsapp: formData.whatsapp.trim() || undefined,
-      email: formData.email.trim() || undefined,
-      address: formData.address.trim(),
-      city: formData.city.trim() || undefined,
-      notes: formData.notes.trim() || undefined,
-    });
+      
+      let client: Client | null = null;
+      try {
+        client = await addClient({
+          name: formData.name.trim(),
+          phone: formData.phone.trim() || '', // Ensure not undefined
+          whatsapp: formData.whatsapp.trim(),
+          email: formData.email.trim() || undefined,
+          address: formData.address.trim(),
+          city: formData.city.trim() || undefined,
+          notes: formData.notes.trim() || undefined,
+        });
+      } catch (addError) {
+        console.error('[ClientSelector] Exception in addClient:', addError);
+        toast.error('Error al crear cliente');
+        return false;
+      }
 
-      if (client) {
-        console.log('[ClientSelector] Client created:', client);
-        onSelectClient(client);
-        toast.success('Cliente creado exitosamente');
+      console.log('[ClientSelector] addClient result:', client);
+
+      if (client && client.id) {
+        console.log('[ClientSelector] Client created successfully:', client);
+        // Close modal first
+        setSheetOpen(false);
+        // Use setTimeout to ensure modal state updates before selecting
+        setTimeout(() => {
+          onSelectClient(client!);
+          toast.success('Cliente creado exitosamente');
+        }, 100);
         return true;
       } else {
+        console.error('[ClientSelector] Client creation failed - no client returned');
         toast.error('Error al crear cliente');
         return false;
       }

@@ -114,7 +114,10 @@ export const mapClientToApi = (client: Partial<Client> & { id?: string }, create
   const mapped: Partial<ApiClient> = {};
   if (client.id !== undefined) mapped.id = client.id;
   if (client.name !== undefined) mapped.nombre = client.name;
-  if (client.phone !== undefined) mapped.telefono = client.phone;
+  
+  // Telefono: use whatsapp as fallback if phone is empty (API requires it)
+  mapped.telefono = client.phone || client.whatsapp || '-';
+  
   if (client.address !== undefined) mapped.direccion = client.address;
   
   // WhatsApp: siempre incluir, usar teléfono como fallback (API lo requiere)
